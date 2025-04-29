@@ -1,0 +1,13 @@
+{
+    "productId": "integer|primary_key|auto_increment",
+    "productName": "string|max:100|unique",
+    "price": "integer|min:1",
+    "stockQuantity": "integer|min:0",
+    "productType": "string|enum:physical,digital,service",
+    "status": "string|enum:active,inactive",
+    "categoryId": "integer|foreign:categories:categoryId",
+    "productImage": "file:file:jpg,png|nullable",
+    "productCreatedAt": "timestamp",
+    "productUpdatedAt": "timestamp",
+    "productIdentify": "string|max:50"
+}

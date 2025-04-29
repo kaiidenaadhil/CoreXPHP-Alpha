@@ -1,0 +1,1 @@
+CREATE TABLE heroVideos (`OrderId` INT PRIMARY KEY NOT NULL, `OrderNumber` INT  NOT NULL CHECK (LENGTH(OrderNumber) <= 50), `ClientName` VARCHAR(255)  NOT NULL, `PersonId` INT  NOT NULL, , `heroVideoUpdated` TIMESTAMP  NOT NULL, `heroVideoIdentify` VARCHAR(255)  NOT NULL)

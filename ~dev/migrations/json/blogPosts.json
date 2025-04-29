@@ -1,0 +1,11 @@
+{
+    "postId": "integer|primary_key|auto_increment",
+    "title": "string|max:200",
+    "slug": "string|max:200|unique",
+    "content": "text",
+    "coverImage": "string|max:255|nullable",
+    "status": "string|enum:published,draft",
+    "blogPostCreatedAt": "timestamp",
+    "blogPostUpdatedAt": "timestamp",
+    "blogPostIdentify": "string|max:50"
+}

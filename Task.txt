@@ -1,0 +1,33 @@
+Prompt to Create Admin Panel Features:
+
+        "Create an admin panel for managing products with the following features:
+
+        Single View PDF Export: Implement a button to export the details of a single product to a PDF. Include key product information such as name, description, price, stock, category, SKU, and product image. Use a PDF generation library (e.g., jsPDF for front-end or FPDF for back-end).
+
+        Bulk Import: Create a bulk import form where admin users can upload a CSV or Excel file to import product data. Each row should contain product details such as name, description, price, stock, category, etc.
+
+        Export as CSV: Add an "Export as CSV" button that exports all product data into a downloadable CSV file. The CSV should include product details such as name, SKU, price, category, stock status, etc.
+
+        Bulk Delete: Implement checkboxes next to each product in the product list, allowing the admin to select multiple products for deletion. Once selected, the admin can click a 'Bulk Delete' button to remove the selected products from the database.
+
+        Search: Add a search bar at the top of the product list where the admin can search for products by name, SKU, or other attributes. The results should update dynamically as the admin types.
+
+        Sort: Implement a dropdown to sort products by various attributes, such as name (A-Z, Z-A), price (Low to High, High to Low), and stock status. Update the product list according to the selected sorting option.
+
+        Filter: Implement filter options for products, allowing the admin to filter by category, stock status (In Stock/Out of Stock), price range (min/max), etc. The product list should update based on the selected filters.
+
+        Single Operation Edit: Allow the admin to edit a product by clicking an "Edit" button next to each product in the list. Clicking this button should redirect to an editable form with pre-filled values for the product’s attributes (name, description, price, etc.). After editing, the admin can save the changes.
+
+        Single Operation Delete: Allow the admin to delete a product with a "Delete" button next to each product. When clicked, a confirmation prompt should appear to confirm deletion. After confirmation, the product should be removed from the database.
+
+        Single Operation View: Include a "View" button next to each product. When clicked, it should display a detailed view of the product, showing all product information like name, description, price, stock, SKU, category, and product image. The admin should be able to close this view or navigate back to the product list.
+
+
+Make Auto Created MVC from ~ dev with newly added functionalities .
+
+
+1. Check relationship and 
+
+2 .Check pagination, Short , Filter etc
+
+3. Adding New Features in view pdf, export csv , import csv,bulk delete , bulk .

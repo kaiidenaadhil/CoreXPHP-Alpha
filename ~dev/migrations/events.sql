@@ -1,0 +1,15 @@
+CREATE TABLE `events` (
+`eventId` INT  PRIMARY KEY NOT NULL AUTO_INCREMENT,
+`title` VARCHAR(150)  NOT NULL,
+`categoryId` INT  NOT NULL,
+`location` VARCHAR(200)  NOT NULL,
+`eventDate` VARCHAR(50)  NOT NULL,
+`eventTime` VARCHAR(50)  NOT NULL,
+`coverImage` VARCHAR(255)  NULL,
+`summary` TEXT  NULL,
+`status` ENUM('upcoming', 'completed', 'cancelled')  NOT NULL,
+`eventCreatedAt` TIMESTAMP  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+`eventUpdatedAt` TIMESTAMP  NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+`eventIdentify` VARCHAR(50)  NOT NULL,
+FOREIGN KEY (`categoryId`) REFERENCES `eventCategories`(`categoryId`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

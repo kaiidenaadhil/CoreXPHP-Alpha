@@ -1,0 +1,11 @@
+{
+    "serviceId": "integer|primary_key|auto_increment",
+    "title": "string|max:100|unique",
+    "category": "string|enum:corporate,entertainment,social,technical,creative",
+    "description": "text",
+    "icon": "string|max:150|nullable",
+    "status": "string|enum:active,inactive",
+    "serviceCreatedAt": "timestamp",
+    "serviceUpdatedAt": "timestamp",
+    "serviceIdentify": "string|max:50"
+}

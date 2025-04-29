@@ -1,0 +1,11 @@
+{
+    "testimonialId": "integer|primary_key|auto_increment",
+    "clientId": "integer|foreign:clients:clientId",
+    "name": "string|max:100",
+    "message": "text",
+    "photo": "string|max:255|nullable",
+    "designation": "string|max:100|nullable",
+    "testimonialCreatedAt": "timestamp",
+    "testimonialUpdatedAt": "timestamp",
+    "testimonialIdentify": "string|max:50"
+}

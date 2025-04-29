@@ -1,0 +1,44 @@
+{
+    "name": "kaiidenaadhil/corexphp",
+    "description": "CoreXPHP MVC Framework",
+    "require": {
+        "php": ">=8.0",
+        "phpmailer/phpmailer": "^6.9",
+        "firebase/php-jwt": "^6.10"
+    },
+    "autoload": {
+        "files": [
+            "app/core/Function.php", 
+            "app/core/Logger.php",
+            "app/core/Session.php",
+            "app/core/Request.php",
+            "app/core/Response.php",
+            "app/core/App.php",
+            "app/core/Router.php",
+            "app/core/MiddlewareInterface.php",
+            "app/core/Controller.php",
+            "app/core/Database.php",
+            "app/core/QueryBuilder.php",
+            "app/core/Model.php",
+            "app/core/Validator.php",
+            "app/core/Paginator.php",
+            "app/core/Language.php",
+            "app/core/View.php",
+            "app/core/Service.php"
+        ]
+    },
+    "minimum-stability": "stable",
+    "license": "MIT",
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/kaiidenaadhil/coreXPHP.git"
+        }
+    ],
+    "extra": {
+        "branch-alias": {
+            "dev-main": "1.0.x-dev"
+        }
+    }
+}

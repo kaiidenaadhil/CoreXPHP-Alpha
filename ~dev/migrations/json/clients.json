@@ -1,0 +1,10 @@
+{
+    "clientId": "integer|primary_key|auto_increment",
+    "name": "string|max:100",
+    "logo": "string|max:255|nullable",
+    "companyType": "string|nullable",
+    "status": "string|enum:active,inactive",
+    "clientCreatedAt": "timestamp",
+    "clientUpdatedAt": "timestamp",
+    "clientIdentify": "string|max:50"
+}

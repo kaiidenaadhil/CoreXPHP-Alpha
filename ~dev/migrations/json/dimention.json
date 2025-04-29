@@ -1,0 +1,10 @@
+{
+    "id": "integer|primary_key|auto_increment",
+    "boo": "boolean",
+    "floa": "float|float:8,2",
+    "deci": "decimal|decimal:10,2",
+    "doub": "double|double:10,4",
+    "dimentionCreatedAt": "timestamp",
+    "dimentionUpdatedAt": "timestamp",
+    "dimentionIdentify": "string|max:50"
+}

@@ -1,0 +1,14 @@
+{
+    "eventId": "integer|primary_key|auto_increment",
+    "title": "string|max:150",
+    "categoryId": "integer|foreign:eventCategories:categoryId",
+    "location": "string|max:200",
+    "eventDate": "string|max:50",
+    "eventTime": "string|max:50",
+    "coverImage": "string|max:255|nullable",
+    "summary": "text|nullable",
+    "status": "string|enum:upcoming,completed,cancelled",
+    "eventCreatedAt": "timestamp",
+    "eventUpdatedAt": "timestamp",
+    "eventIdentify": "string|max:50"
+}

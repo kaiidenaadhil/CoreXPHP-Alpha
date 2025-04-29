@@ -1,0 +1,9 @@
+CREATE TABLE `categories` (
+`categoryId` INT  PRIMARY KEY NOT NULL AUTO_INCREMENT,
+`categoryName` VARCHAR(255)  NULL,
+`categoryURI` VARCHAR(255)  NULL,
+`categoryType` ENUM('product', 'article', 'post')  NOT NULL,
+`categoryCreatedAt` TIMESTAMP  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+`categoryUpdatedAt` TIMESTAMP  NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+`categoryIdentify` VARCHAR(50)  NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

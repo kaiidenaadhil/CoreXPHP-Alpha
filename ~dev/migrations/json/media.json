@@ -1,0 +1,8 @@
+{
+    "mediaId": "integer|primary_key|auto_increment",
+    "media": "file|file:jpg,png,gif|nullable",
+    "mediaType": "enum|enum:post,product|nullable",
+    "mediumCreatedAt": "timestamp",
+    "mediumUpdatedAt": "timestamp",
+    "mediumIdentify": "string|max:50"
+}

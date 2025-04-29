@@ -1,0 +1,1 @@
+<?php include_once "../components/docs-header.php"; ?><main class="content"><div class="breadcrumb"><a href="#">Docs</a> > <a href="#">Hidden</a></div><h1>Hidden Features</h1><p>Explore hidden features.</p><div class="pagination"><a href="<?=ROOT?>/docs/changelog.php" class="prev-page">Previous Page</a></div></main><?php include_once "../components/docs-footer.php"; ?>

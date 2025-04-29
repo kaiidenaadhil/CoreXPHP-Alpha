@@ -1,0 +1,9 @@
+{
+    "portfolioId": "integer|primary_key|auto_increment",
+    "eventId": "integer|foreign:events:eventId",
+    "galleryImage": "string|max:255",
+    "caption": "string|max:150|nullable",
+    "portfolioCreatedAt": "timestamp",
+    "portfolioUpdatedAt": "timestamp",
+    "portfolioIdentify": "string|max:50"
+}

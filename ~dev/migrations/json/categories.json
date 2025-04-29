@@ -1,0 +1,9 @@
+{
+    "categoryId": "integer|primary_key|auto_increment",
+    "categoryName": "string|max:255|nullable",
+    "categoryURI": "string|max:255|nullable",
+    "categoryType": "enum|enum:product,article,post",
+    "categoryCreatedAt": "timestamp",
+    "categoryUpdatedAt": "timestamp",
+    "categoryIdentify": "string|max:50"
+}

@@ -1,0 +1,12 @@
+{
+    "postId": "integer|nullable|primary_key|auto_increment",
+    "postTitle": "string|max:250|nullable",
+    "postDesc": "string|max:250|nullable",
+    "postImg": "string|max:250|nullable|unique",
+    "postType": "enum|enum:a,b,c",
+    "postboolean": "boolean",
+    "postFloat": "float|max:8,2",
+    "postCreatedAt": "timestamp",
+    "postUpdatedAt": "timestamp",
+    "postIdentify": "string|max:50"
+}

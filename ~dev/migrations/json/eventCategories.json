@@ -1,0 +1,9 @@
+{
+    "categoryId": "integer|primary_key|auto_increment",
+    "name": "string|max:100|unique",
+    "description": "text|nullable",
+    "status": "string|enum:active,inactive",
+    "eventCategoryCreatedAt": "timestamp",
+    "eventCategoryUpdatedAt": "timestamp",
+    "eventCategoryIdentify": "string|max:50"
+}

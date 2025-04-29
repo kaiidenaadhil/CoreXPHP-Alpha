@@ -1,0 +1,8 @@
+{
+    "faqId": "integer|primary_key|auto_increment",
+    "question": "string|max:255",
+    "answer": "text",
+    "faqCreatedAt": "timestamp",
+    "faqUpdatedAt": "timestamp",
+    "faqIdentify": "string|max:50"
+}

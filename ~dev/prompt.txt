@@ -1,0 +1,1481 @@
+Overview:
+
+The Database Schema Generator is a user-friendly, interactive web tool designed to help developers efficiently generate SQL schema definitions. This tool simplifies the creation of database tables by allowing users to define fields, data types, constraints, and relationships, all in a dynamic, real-time interface.
+
+Features:
+
+Flexible Data Type Support:
+
+Choose from a variety of data types, including integer, string, timestamp, enum, boolean, and float, to match the specific requirements of your database schema.
+
+Real-Time Schema Preview:
+
+As users add and modify fields, the tool instantly updates a JSON-based schema preview, providing immediate feedback and ensuring that your database design is structured correctly.
+
+Primary Key & Auto Increment Logic:
+
+Automatically apply auto_increment when selecting a primary_key data type, ensuring compatibility with common SQL practices. The tool prevents conflicting settings and disables unnecessary input options once primary_key is selected.
+
+Foreign Key Management:
+
+Easily define foreign key relationships by inputting the referencing table and column using the format ForeignTable:ForeignKey, ensuring referential integrity in your database schema.
+
+Dynamic Table Creation:
+
+Add or remove fields dynamically using the Add Row and Delete Row buttons, making schema creation faster and more intuitive.
+
+Validation & Constraints:
+
+Set field constraints such as nullable, unique, max length, or enum values based on user input. Constraints are applied intelligently to avoid conflicts and ensure proper SQL generation.
+
+Responsive Design:
+
+The tool adapts to various screen sizes, allowing developers to generate and manage database schemas efficiently on both desktop and mobile devices.
+
+Security & Robust Error Prevention:
+
+The tool validates field names and types to prevent errors (e.g., auto-increment only for integer fields) and ensures that conflicting settings (like multiple primary keys) cannot be selected.
+
+Usage Scenario:
+
+Efficient Schema Design: Developers can use this tool to quickly draft the structure of their database tables without needing to manually write SQL statements.
+
+Learning & Prototyping: Ideal for beginners learning about database structure, as well as for professionals prototyping new database designs.
+
+How It Works:
+
+Field Name: Enter the name of your table field. The tool ensures that field names follow proper naming conventions (e.g., no spaces or special characters).
+
+Data Type: Choose the appropriate data type from the dropdown (e.g., integer, string, enum).
+
+Length/Value: Specify constraints like max length or enum values (comma-separated for enum).
+
+Nullable: Indicate whether the field can be nullable by checking the appropriate box.
+
+Index Type: Select if the field should be a primary_key, unique, or have no index.
+
+Auto Increment: For integer fields, choose whether the field should be auto_increment.
+
+Foreign Key: Optionally define foreign key relationships by providing the ForeignTable:ForeignColumn.
+
+Example Output:
+
+For a schema with fields like postId, postType, postDesc, and postedAt, the tool would generate the following JSON schema:
+
+json
+Copy
+Edit
+{
+  "postId": "integer|primary_key|auto_increment",
+  "postType": "enum|enum:a,b,c",
+  "postDesc": "string|max:250",
+  "postedAt": "timestamp|default:CURRENT_TIMESTAMP"
+}
+Benefits:
+
+Quick Database Design: Generates SQL-compatible schemas with minimal effort.
+
+Error-Free: Built-in validation ensures that the schema is free from common database design errors.
+
+Intuitive Interface: Provides a clean and simple interface that makes database design easy, even for novice users.
+
+Real-Time Feedback: The live schema preview helps catch issues early in the design process.
+
+
+
+
+
+
+
+
+
+
+
+CoreXPHP - Supercharge Your PHP Development
+🚀 Build Blazing-Fast Apps with CoreXPHP – A lightweight, high-performance MVC + PDO Framework that automates Models, Views, Controllers, Database & Routing from a simple JSON Schema.
+
+⚡ Why CoreXPHP?
+✅ Lightning-Fast – Optimized for speed with minimal overhead.
+✅ JSON-to-Code Automation – Just define your schema, and CoreXPHP generates the full stack.
+✅ MVC + PDO – Clean architecture with secure database interactions.
+✅ Flexible & Scalable – Perfect for small APIs or large enterprise apps.
+✅ Modern PHP Support – Built for PHP 8.0+ with strict typing and performance boosts.
+
+🔥 Core Features
+🚀 Automatic Code Generation
+🔹 Define your schema in JSON → Get Models, Views, Controllers, DB Migrations & Routes instantly.
+🔹 CoreXBuilder – Web-based GUI for rapid CRUD scaffolding.
+
+🛠️ Powerful ORM & Query Builder
+🔹 PDO-based (Secure & Fast)
+🔹 Fluent Query Builder for complex SQL without raw strings.
+🔹 Relationships (1:1, 1:M, M:M) with minimal configuration.
+
+🌐 Smart Routing System
+🔹 RESTful & Dynamic Routes
+🔹 Middleware Support (Auth, Logging, CORS, etc.)
+🔹 Route Caching for ultra-fast responses.
+
+📦 Built-in Templating Engine
+🔹 Simple, Fast & Extensible
+🔹 Layouts, Partials, and Components
+
+🔒 Security First
+🔹 CSRF Protection
+🔹 Input Validation & Sanitization
+🔹 JWT Authentication (Optional)
+
+⚙️ Developer Tools
+🔹 Environment Configs (.env support)
+CoreXBuilder 
+
+📦 Get Started in Seconds!
+1. Install via Composer
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CoreXPHP Framework Full Documentation with Code Examples and Explanations
+
+---
+
+1. **app/core/App.php**
+   - Initializes the application by setting up essential components such as request, response, router, database, and view.
+   - Code Example:
+     ```php
+ <?php
+class App {
+    public static string $ROOT_DIRECTORY;
+    public static View $view;
+    public static Logger $logger;
+    public static Session $session;
+    public static Service $service; // Service Manager
+
+    public Router $router;
+    public Request $request;
+    public Response $response;
+    public Database $db;
+    protected array $globalMiddleware = [];
+
+    public function __construct($rootPath) {
+        self::$ROOT_DIRECTORY = $rootPath;
+
+        // Initialize core components
+        $this->request = new Request();
+        $this->response = new Response();
+        $this->router = new Router($this->request, $this->response);
+        $this->db = new Database();
+
+        $logPath = self::$ROOT_DIRECTORY . '/app/logs/error.log';
+        self::$view = new View(THEME);
+        self::$logger = new Logger($logPath);
+        self::$session = new Session();
+
+        // Initialize the Service Manager
+        self::$service = new Service(self::$ROOT_DIRECTORY . '/app/services/');
+
+        // Register global exception handler
+        set_exception_handler([$this, 'handleException']);
+    }
+
+    public function use($middlewareClass) {
+        $this->globalMiddleware[] = new $middlewareClass;
+    }
+
+    public function run() {
+        foreach ($this->globalMiddleware as $middleware) {
+            $middleware->handle($this->request, $this->response);
+        }
+        echo $this->router->resolve();
+    }
+
+    public function handleException($exception) {
+        self::$logger->logError($exception);
+        http_response_code(500);
+        $this->renderErrorPage(500);
+    }
+
+    protected function renderErrorPage($errorCode) {
+        $errorView = self::$ROOT_DIRECTORY . "/app/views/errors/{$errorCode}.php";
+        if (file_exists($errorView)) {
+            include $errorView;
+        } else {
+            echo "Error {$errorCode}";
+        }
+    }
+
+    // Magic method to dynamically access registered services
+    public function __get($name) {
+        return self::$service->get($name);
+    }
+}
+
+     ```
+   - Explanation:
+     - `App` class initializes core components and sets up routing and database.
+     - `$ROOT_DIRECTORY` is the base path used throughout the application.
+     - `run()` executes the application, processing requests and delivering responses.
+
+2. **app/core/Controller.php**
+   - Base controller class, managing view rendering and loading models.
+   - Code Example:
+     ```php
+ <?php
+class Controller
+{  
+    protected function getService($name)
+    {
+        return App::$service->get($name);
+    }
+
+    public function view($view, $params = [])
+    {
+        echo App::$view->render($view, $params);
+    }
+
+    public function onlyView($view, $params = [])
+    {
+        echo App::$view->renderOnlyView($view, $params);
+    }
+
+    public function adminView($view, $params = [])
+    {
+        echo App::$view->renderAdmin($view, $params);
+    }
+
+    public function model($model)
+    {
+        $modelPath = "../app/models/" . $model . ".php";
+        if (file_exists($modelPath))
+        {
+            include $modelPath;
+            return new $model;
+        }
+        throw new Exception("Model $model not found.");
+    }
+}
+
+     ```
+   - Explanation:
+     - `view()` and `adminView()` render views with optional parameters.
+     - `model()` dynamically loads a model if the file exists, else throws an exception.
+
+3. **app/core/Database.php**
+   - Manages database connections using the singleton pattern for efficiency.
+   - Code Example:
+     ```php
+     <?php
+     class Database {
+         protected static $instance = null;
+         protected $conn;
+
+         public function __construct() {
+             try {
+                 $dsn = DB_TYPE . ":host=" . DB_HOST . ";dbname=" . DB_NAME;
+                 $this->conn = new PDO($dsn, DB_USER, DB_PASS);
+                 $this->conn->exec("SET NAMES utf8mb4");
+                 $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+             } catch (PDOException $e) {
+                 echo $e->getMessage(); // Handle connection error
+             }
+         }
+
+         public static function getInstance() {
+             if (!self::$instance) {
+                 self::$instance = new self(); // Ensure single instance
+             }
+             return self::$instance;
+         }
+
+         public function getConnection() {
+             return $this->conn; // Access the active PDO connection
+         }
+     }
+     ```
+   - Explanation:
+     - Singleton pattern provides a single instance of the database connection.
+     - `getConnection()` returns the active PDO connection.
+
+
+4. **app/core/Function.php**
+   - Provides utility functions for common tasks, such as debugging, redirection, and CSRF token handling.
+   - Code Example:
+     ```php
+     <?php
+     function p($value) {
+         echo "<pre>";
+         var_dump($value);
+         echo "</pre>";
+         exit; // Print and stop execution
+     }
+
+     function redirect($path, $statusCode = 303) {
+         $url = ROOT . '/' . $path;
+         header('Location: ' . $url, true, $statusCode); // Redirect to specified path
+         die();
+     }
+
+     function generateCSRFToken() {
+         $token = bin2hex(random_bytes(32));
+         $_SESSION['_token'] = $token;
+         return $token; // Return CSRF token
+     }
+     ```
+   - Explanation:
+     - `p()` function prints a variable’s content and halts execution, useful for debugging.
+     - `redirect()` function redirects to a specific path using an HTTP status code.
+     - `generateCSRFToken()` creates a secure token for CSRF protection.
+
+5. **app/core/Request.php**
+   - Manages HTTP request data, including GET, POST, and JSON handling.
+   - Code Example:
+     ```php
+     <?php
+     class Request {
+         public function getPath() {
+             $path = $_SERVER['REQUEST_URI'] ?? '/';
+             $position = strpos($path, '?');
+             return $position === false ? $path : substr($path, 0, $position); // Return path without query
+         }
+
+         public function method() {
+             return strtolower($_SERVER['REQUEST_METHOD']); // Get HTTP method
+         }
+
+         public function getBody() {
+             $body = [];
+             if ($this->isPost()) {
+                 foreach ($_POST as $key => $value) {
+                     $body[$key] = filter_input(INPUT_POST, $key, FILTER_SANITIZE_SPECIAL_CHARS);
+                 }
+             }
+             return $body; // Return sanitized POST data
+         }
+     }
+     ```
+   - Explanation:
+     - `getPath()` returns the URL path without query parameters.
+     - `method()` gets the HTTP method (e.g., GET or POST).
+     - `getBody()` sanitizes and returns POST data.
+app/core/service.php
+<?php
+class Service {
+    private $services = [];
+
+    public function __construct($servicesPath) {
+        $this->loadAllServices($servicesPath);
+    }
+
+    public function register($key, $service) {
+        $this->services[$key] = $service;
+    }
+
+    public function get($key) {
+        if (!isset($this->services[$key])) {
+            throw new Exception("Service not found: " . $key);
+        }
+        return $this->services[$key];
+    }
+
+    private function loadAllServices($servicesPath) {
+        foreach (glob($servicesPath . '*Service.php') as $file) {
+            require_once $file;
+
+            // Extract class name from the file
+            $className = basename($file, '.php');
+
+            // Ensure the class exists before instantiating and registering
+            if (class_exists($className)) {
+                $serviceName = strtolower(preg_replace('/Service$/', '', $className)); // e.g., MailService -> mail
+                $this->register($serviceName, new $className());
+            }
+        }
+    }
+}
+
+6. **app/core/Router.php**
+   - Defines and resolves routes by mapping URLs to controllers or actions.
+   - Code Example:
+     ```php
+ <?php
+
+class Router
+{
+    public Request $request;
+    public Response $response;
+    protected array $routes = [];
+
+    public function __construct(Request $request, Response $response)
+    {
+        $this->request = $request;
+        $this->response = $response;
+    }
+
+    public function get($path, $callback, $middlewares = [])
+    {
+        $this->routes['get'][$path] = ['callback' => $callback, 'middlewares' => $middlewares];
+    }
+
+    public function post($path, $callback, $middlewares = [])
+    {
+        $this->routes['post'][$path] = ['callback' => $callback, 'middlewares' => $middlewares];
+    }
+
+    public function put($path, $callback, $middlewares = [])
+    {
+        $this->routes['put'][$path] = ['callback' => $callback, 'middlewares' => $middlewares];
+    }
+
+    public function delete($path, $callback, $middlewares = [])
+    {
+        $this->routes['delete'][$path] = ['callback' => $callback, 'middlewares' => $middlewares];
+    }
+
+
+    public function resource($path, $model, $controllerClass, $middlewares = [])
+    {
+        $this->get("/{$path}", [$controllerClass, "{$model}Index"], $middlewares);
+        $this->get("/{$path}/build", [$controllerClass, "{$model}Build"], $middlewares);
+        $this->post("/{$path}/build", [$controllerClass, "{$model}Record"], $middlewares);
+        $this->get("/{$path}/{{$model}Identify}/destroy", [$controllerClass, "{$model}Destroy"], $middlewares);
+        $this->get("/{$path}/{{$model}Identify}/modify", [$controllerClass, "{$model}Modify"], $middlewares);
+        $this->post("/{$path}/{{$model}Identify}/modify", [$controllerClass, "{$model}Edit"], $middlewares);
+        $this->get("/{$path}/{{$model}Identify}", [$controllerClass, "{$model}Display"], $middlewares);
+    }
+    public function resolve()
+    {
+        $path = rtrim($this->request->getPath(), '/');
+        $method = $this->request->method();
+        // echo "Requested Path: $path\n";
+        // echo "HTTP Method: $method\n";
+        // var_dump($this->routes);
+        foreach ($this->routes[$method] as $routePath => $routeInfo) {
+            $routePattern = '#^' . preg_replace('/\{(.*?)\}/', '([^/]+)', $routePath) . '$#';
+            if (preg_match($routePattern, $path, $matches)) {
+                array_shift($matches); // Remove the full match
+
+                $middlewares = $routeInfo['middlewares'];
+                $callback = $routeInfo['callback'];
+
+                $next = function ($request) use ($callback, $matches) {
+                    if (is_string($callback)) {
+                        return App::$view->render($callback, $matches);
+                    }
+
+                    if (is_array($callback)) {
+                        require_once "../app/controllers/" . $callback[0] . ".php";
+                        $controller = new $callback[0]();
+                        return $this->invokeControllerMethod($controller, $callback[1], $matches);
+                    }
+
+                    return call_user_func_array($callback, $matches);
+                };
+
+                while ($middleware = array_shift($middlewares)) {
+                    $middlewareFile = "../app/middlewares/{$middleware}.php";
+                    if (file_exists($middlewareFile)) {
+                        require_once $middlewareFile;
+                    } else {
+                        throw new Exception("Middleware file {$middlewareFile} not found.");
+                    }
+
+                    $middlewareInstance = new $middleware();
+                    $next = function ($request) use ($middlewareInstance, $next) {
+                        return $middlewareInstance->handle($request, $next);
+                    };
+                }
+
+                return $next($this->request);
+            }
+        }
+
+        $this->response->setStatusCode(404);
+        return "Not Found";
+    }
+
+    private function invokeControllerMethod($controller, $methodName, $matches)
+    {
+        $reflectionMethod = new ReflectionMethod($controller, $methodName);
+        $parameters = $reflectionMethod->getParameters();
+        $args = [];
+
+        foreach ($parameters as $param) {
+            $paramName = $param->getName();
+            if ($param->getClass() && $param->getClass()->name === Request::class) {
+                $args[] = $this->request;
+            } elseif ($param->getClass() && $param->getClass()->name === Response::class) {
+                $args[] = $this->response;
+            } else {
+                $args[] = array_shift($matches);
+            }
+        }
+
+        return $reflectionMethod->invokeArgs($controller, $args);
+    }
+}
+
+     ```
+   - Explanation:
+     - `get()` and `post()` register routes for GET and POST requests, respectively.
+     - `resolve()` matches the request path to a registered route and calls the corresponding callback.
+
+7. **app/core/View.php**
+   - Manages the rendering of views, loading templates and layouts based on parameters.
+   - Code Example:
+     ```php
+ <?php
+
+class View
+{
+    public function render($view, $params = [], $isAdmin = false)
+    {
+        $viewContent = $this->renderView($view, $params);
+        return $this->renderLayout($viewContent, $isAdmin);
+    }
+
+    public function renderOnlyView($view, $params = [])
+    {
+        return $this->renderView($view, $params);
+    }
+
+    protected function renderView($view, $params = [])
+    {
+        $viewPath = App::$ROOT_DIRECTORY . "/app/views/" . THEME . "/{$view}.php";
+
+        if (!file_exists($viewPath)) {
+            throw new Exception("View {$view} not found at path: {$viewPath}");
+        }
+
+        extract($params);
+        ob_start();
+        include $viewPath;
+        return ob_get_clean();
+    }
+
+    protected function renderLayout($content, $isAdmin)
+    {
+        $layout = $isAdmin ? 'adminLayout' : 'layout';
+        $layoutPath = App::$ROOT_DIRECTORY . "/app/views/" . THEME . "/@layout/{$layout}.php";
+
+        if (!file_exists($layoutPath)) {
+            throw new Exception("Layout not found at path: {$layoutPath}");
+        }
+
+        ob_start();
+        include $layoutPath;
+        $layout = ob_get_clean();
+
+        return str_replace('{{content}}', $content, $layout);
+    }
+
+    public function renderAdmin($view, $params = [])
+    {
+        return $this->render($view, $params, true);
+    }
+}
+
+     ```
+   - Explanation:
+     - `render()` calls `renderView()` to load view content and `renderLayout()` to wrap it in a layout.
+     - `renderView()` loads the view file and processes it with given parameters.
+     - `renderLayout()` embeds the view content within a specified layout template.
+
+8. **app/core/Validator.php**
+   - Validates input data based on specified rules, ensuring data integrity.
+   - Code Example:
+     ```php
+  <?php 
+class Validator {
+    private $errors = [];
+    private $rules = [];
+    public function rules($rules) {
+        $this->rules = $rules;
+    }
+    public function validate($data) {
+        foreach ($this->rules as $field => $fieldRules) {
+            $rules = explode('|', $fieldRules);
+            foreach ($rules as $rule) {
+                $value = isset($data[$field]) ? $data[$field] : null;
+                $ruleData = explode(":", $rule);
+                $rule = $ruleData[0];
+                $param = isset($ruleData[1]) ? $ruleData[1] : null;
+                $this->{$rule}($field, $value, $param);
+            }
+        }
+    }
+    private function required($field, $value) {
+        if (empty($value)) {
+            $this->errors[$field] = "The $field field is required.";
+        }
+    }
+    private function email($field, $value) {
+        if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+            $this->errors[$field] = "The $field field must be a valid email address.";
+        }
+    }
+    private function min($field, $value, $param) {
+        if (strlen($value) < $param) {
+            $this->errors[$field] = "The $field field must be at least $param characters long.";
+        }
+    }
+    public function fails() {
+        return !empty($this->errors);
+    }
+    public function errors() {
+        return $this->errors;
+    }
+}
+     ```
+   - Explanation:
+     - `rules()` method sets validation rules for fields.
+     - `validate()` method applies rules and records any errors.
+     - `fails()` returns true if there are validation errors, while `errors()` returns the list of errors.
+
+9. **app/core/QueryBuilder.php**
+   - Simplifies SQL queries with a fluent API for building and executing database queries.
+   - Code Example:
+     ```php
+ <?php
+
+/**
+ * CoreXPHP QueryBuilder Class
+ * 
+ * This class helps build and execute SQL queries in an expressive, chainable style.
+ */
+class QueryBuilder
+{
+    protected $db;             // PDO database connection
+    protected $query;          // Raw SQL query being built
+    protected $bindings = [];  // Bound parameters
+    protected $table;          // Current table
+    protected $whereAdded = false; // Flag to track WHERE clause
+
+    public function __construct()
+    {
+        $this->db = Database::getInstance()->getConnection();
+    }
+
+    /**
+     * Create a new QueryBuilder for a specific table
+     */
+    public static function table($table)
+    {
+        return (new self())->setTable($table);
+    }
+
+    /**
+     * Set the table and default SELECT query
+     */
+    public function setTable($table)
+    {
+        $this->table = $table;
+        $this->query = "SELECT * FROM " . $this->quoteIdentifier($table);
+        return $this;
+    }
+
+    /*================== CRUD ==================*/
+
+    public function insert($data)
+    {
+        $columns = implode(", ", array_map([$this, 'quoteIdentifier'], array_keys($data)));
+        $placeholders = ":" . implode(", :", array_keys($data));
+        $this->query = "INSERT INTO " . $this->quoteIdentifier($this->table) . " ($columns) VALUES ($placeholders)";
+        $this->bindings = $data;
+        return $this->execute();
+    }
+
+    public function update($data)
+    {
+        if (!$this->whereAdded) {
+            throw new Exception("Update operation requires a WHERE clause.");
+        }
+
+        $set = [];
+        foreach ($data as $col => $val) {
+            $set[] = $this->quoteIdentifier($col) . " = :$col";
+            $this->bindings[$col] = $val;
+        }
+
+        $this->query = "UPDATE " . $this->quoteIdentifier($this->table)
+                     . " SET " . implode(", ", $set)
+                     . " " . $this->getWhereClause();
+
+        return $this->execute();
+    }
+
+    public function delete()
+    {
+        if (!$this->whereAdded) {
+            throw new Exception("Delete operation requires a WHERE clause.");
+        }
+
+        $this->query = "DELETE FROM " . $this->quoteIdentifier($this->table) . $this->getWhereClause();
+        return $this->execute();
+    }
+
+    public function truncate()
+    {
+        $this->query = "TRUNCATE TABLE " . $this->quoteIdentifier($this->table);
+        return $this->execute();
+    }
+
+    /*================== WHERE ==================*/
+
+    public function where($column, $operator, $value)
+    {
+        $this->addWhereClause();
+        $this->query .= " " . $this->quoteIdentifier($column) . " $operator :$column";
+        $this->bindings[$column] = $value;
+        return $this;
+    }
+
+    public function orWhere($column, $operator, $value)
+    {
+        $this->query .= $this->whereAdded ? " OR" : " WHERE";
+        $this->query .= " " . $this->quoteIdentifier($column) . " $operator :or_$column";
+        $this->bindings["or_$column"] = $value;
+        $this->whereAdded = true;
+        return $this;
+    }
+
+    public function whereIn($column, array $values)
+    {
+        $this->addWhereClause();
+        $placeholders = [];
+
+        foreach ($values as $i => $value) {
+            $key = "{$column}_in_$i";
+            $placeholders[] = ":$key";
+            $this->bindings[$key] = $value;
+        }
+
+        $this->query .= " " . $this->quoteIdentifier($column) . " IN (" . implode(", ", $placeholders) . ")";
+        return $this;
+    }
+
+    public function whereNotIn($column, array $values)
+    {
+        $this->addWhereClause();
+        $placeholders = [];
+
+        foreach ($values as $i => $value) {
+            $key = "{$column}_notin_$i";
+            $placeholders[] = ":$key";
+            $this->bindings[$key] = $value;
+        }
+
+        $this->query .= " " . $this->quoteIdentifier($column) . " NOT IN (" . implode(", ", $placeholders) . ")";
+        return $this;
+    }
+
+    public function whereNull($column)
+    {
+        $this->addWhereClause();
+        $this->query .= " " . $this->quoteIdentifier($column) . " IS NULL";
+        return $this;
+    }
+
+    public function whereNotNull($column)
+    {
+        $this->addWhereClause();
+        $this->query .= " " . $this->quoteIdentifier($column) . " IS NOT NULL";
+        return $this;
+    }
+
+    public function whereBetween($column, $range)
+    {
+        $this->addWhereClause();
+        $this->query .= " " . $this->quoteIdentifier($column) . " BETWEEN :start AND :end";
+        $this->bindings['start'] = $range[0];
+        $this->bindings['end'] = $range[1];
+        return $this;
+    }
+
+    public function whereNotBetween($column, $range)
+    {
+        $this->addWhereClause();
+        $this->query .= " " . $this->quoteIdentifier($column) . " NOT BETWEEN :start AND :end";
+        $this->bindings['start'] = $range[0];
+        $this->bindings['end'] = $range[1];
+        return $this;
+    }
+
+    public function filter(array $conditions)
+    {
+        foreach ($conditions as $column => $value) {
+            if (is_array($value)) {
+                $this->whereIn($column, $value);
+            } elseif ($value === 'NULL') {
+                $this->whereNull($column);
+            } elseif ($value === 'NOT NULL') {
+                $this->whereNotNull($column);
+            } else {
+                $this->where($column, '=', $value);
+            }
+        }
+        return $this;
+    }
+
+    /*================== FETCH ==================*/
+
+    public function select($columns = ['*'])
+    {
+        $quoted = array_map([$this, 'quoteIdentifier'], $columns);
+        $this->query = "SELECT " . implode(', ', $quoted) . " FROM " . $this->quoteIdentifier($this->table);
+        return $this;
+    }
+
+    public function get()
+    {
+        $stmt = $this->db->prepare($this->query);
+        foreach ($this->bindings as $key => $value) {
+            $stmt->bindValue(":$key", $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_OBJ);
+    }
+
+    public function first()
+    {
+        $this->limit(1);
+        $results = $this->get();
+        return $results[0] ?? null;
+    }
+
+    public function find($id, $primaryKey = 'id')
+    {
+        return $this->where($primaryKey, '=', $id)->first();
+    }
+
+    public function count($column = '*')
+    {
+        $originalQuery = $this->query;
+        $originalBindings = $this->bindings;
+
+        $this->query = "SELECT COUNT($column) AS count FROM " . $this->quoteIdentifier($this->table);
+
+        if (stripos($originalQuery, 'WHERE') !== false) {
+            $this->query .= " " . substr($originalQuery, stripos($originalQuery, 'WHERE'));
+        }
+
+        $result = $this->get();
+        $this->query = $originalQuery;
+        $this->bindings = $originalBindings;
+
+        return $result[0]->count ?? 0;
+    }
+
+    /*================== Aggregates ==================*/
+
+    public function sum($column)
+    {
+        return $this->aggregate("SUM", $column);
+    }
+
+    public function avg($column)
+    {
+        return $this->aggregate("AVG", $column);
+    }
+
+    public function min($column)
+    {
+        return $this->aggregate("MIN", $column);
+    }
+
+    public function max($column)
+    {
+        return $this->aggregate("MAX", $column);
+    }
+
+    protected function aggregate($function, $column)
+    {
+        $originalQuery = $this->query;
+        $this->query = "SELECT $function(" . $this->quoteIdentifier($column) . ") AS value FROM " . $this->quoteIdentifier($this->table);
+        return $this->get()[0]->value ?? 0;
+    }
+
+    /*================== Utilities ==================*/
+
+    public function orderBy($column, $direction = 'ASC')
+    {
+        $this->query .= " ORDER BY " . $this->quoteIdentifier($column) . " " . strtoupper($direction);
+        return $this;
+    }
+
+    public function limit($limit)
+    {
+        $this->query .= " LIMIT :limit";
+        $this->bindings['limit'] = (int)$limit;
+        return $this;
+    }
+
+    public function offset($offset)
+    {
+        $this->query .= " OFFSET :offset";
+        $this->bindings['offset'] = (int)$offset;
+        return $this;
+    }
+
+    public function paginate($page = 1, $perPage = 15)
+    {
+        $offset = ($page - 1) * $perPage;
+        return $this->limit($perPage)->offset($offset);
+    }
+
+    public function toSql()
+    {
+        $sql = $this->query;
+        foreach ($this->bindings as $key => $val) {
+            $sql = str_replace(":$key", is_numeric($val) ? $val : "'$val'", $sql);
+        }
+        return $sql;
+    }
+
+    public function logQuery($file = '../app/logs/query.log')
+    {
+        if (!is_dir(dirname($file))) {
+            mkdir(dirname($file), 0777, true);
+        }
+        file_put_contents($file, "[" . date('Y-m-d H:i:s') . "] " . $this->toSql() . PHP_EOL, FILE_APPEND);
+        return $this;
+    }
+
+    /*================== Internals ==================*/
+
+    protected function addWhereClause()
+    {
+        if (!$this->whereAdded) {
+            $this->query .= " WHERE";
+            $this->whereAdded = true;
+        } else {
+            $this->query .= " AND";
+        }
+    }
+
+    protected function getWhereClause()
+    {
+        $pos = strpos($this->query, 'WHERE');
+        return $pos !== false ? substr($this->query, $pos) : '';
+    }
+
+    protected function quoteIdentifier($identifier)
+    {
+        $parts = explode('.', $identifier);
+        foreach ($parts as &$part) {
+            $part = "`" . str_replace("`", "``", $part) . "`";
+        }
+        return implode('.', $parts);
+    }
+
+    public function execute()
+    {
+        $stmt = $this->db->prepare($this->query);
+        foreach ($this->bindings as $key => $val) {
+            $stmt->bindValue(":$key", $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+        return $stmt->execute();
+    }
+}
+
+
+     9. **app/core/Paginator.php**
+   - Handles pagination, providing calculations for offsets and generating pagination links.
+   - Code Example:
+     ```php
+ <?php
+class Paginator
+{
+    private $totalRecords;
+    private $currentPage;
+    private $perPage;
+    private $totalPages;
+
+    public function __construct($totalRecords, $currentPage = 1, $perPage = 10)
+    {
+        $this->totalRecords = $totalRecords;
+        $this->currentPage = $currentPage;
+        $this->perPage = $perPage;
+        $this->totalPages = ceil($totalRecords / $perPage);
+    }
+
+    public function getOffset()
+    {
+        return ($this->currentPage - 1) * $this->perPage;
+    }
+
+    public function getLimit()
+    {
+        return $this->perPage;
+    }
+
+    public function getTotalPages()
+    {
+        return $this->totalPages;
+    }
+
+    public function getCurrentPage()
+    {
+        return $this->currentPage;
+    }
+
+    public function getPaginationData()
+    {
+        return [
+            'total_records' => $this->totalRecords,
+            'current_page' => $this->currentPage,
+            'per_page' => $this->perPage,
+            'total_pages' => $this->totalPages,
+        ];
+    }
+
+    public function getPageUrl($page)
+    {
+        $url = $_SERVER['REQUEST_URI'];
+        $query = parse_url($url, PHP_URL_QUERY);
+
+        // Remove existing page parameters from the URL
+        $url = preg_replace('/&?page=\d+/', '', $url);
+
+        // Append the new page parameter to the URL
+        if ($query) {
+            $url .= '&page=' . $page;
+        } else {
+            $url .= '?page=' . $page;
+        }
+        return $url;
+    }
+
+    public function render()
+    {
+        $html = '<ul class="pagination">';
+        
+        // Previous button
+        $html .= '<li class="page-item' . ($this->currentPage == 1 ? ' disabled' : '') . '"><a class="page-link" href="' . $this->getPageUrl($this->currentPage - 1) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
+        
+        // First page
+        if ($this->totalPages > 1) {
+            $html .= '<li class="page-item' . ($this->currentPage == 1 ? ' active' : '') . '"><a class="page-link" href="' . $this->getPageUrl(1) . '">First Page</a></li>';
+        }
+        
+        // Pages in between
+        $startPage = max($this->currentPage - 3, 1);
+        $endPage = min($this->currentPage + 3, $this->totalPages);
+        for ($i = $startPage; $i <= $endPage; $i++) {
+            $html .= '<li class="page-item' . ($this->currentPage == $i ? ' active' : '') . '"><a class="page-link" href="' . $this->getPageUrl($i) . '">' . $i . '</a></li>';
+        }
+        
+        // Last page
+        if ($this->totalPages > 1) {
+            $html .= '<li class="page-item' . ($this->currentPage == $this->totalPages ? ' active' : '') . '"><a class="page-link" href="' . $this->getPageUrl($this->totalPages) . '">Last Page</a></li>';
+        }
+        
+        // Next button
+        $html .= '<li class="page-item' . ($this->currentPage == $this->totalPages ? ' disabled' : '') . '"><a class="page-link" href="' . $this->getPageUrl($this->currentPage + 1) . '" aria-label="Next"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>';
+        
+        // Page number input field
+        $html .= '<li class="page-item"><form class="form-inline" style="display:flex;margin-top: -0.5rem;">
+        <input type="text" class="pagination-search" name="page" placeholder="Page" value="' . $this->currentPage . '">
+        <button type="submit" class="pagination-search-button">Go</button></form></li>';
+        
+        $html .= '</ul>';
+    
+        return $html;
+    }
+}
+?>
+
+     ```
+   - Explanation:
+     - `getOffset()` calculates the offset used in SQL LIMIT queries.
+     - `render()` generates HTML links for navigating between pages.
+
+10. **app/init.php**
+    - Loads environment variables and defines constants for application configuration.
+    - Code Example:
+      ```php
+      <?php
+      $_ENV = parse_ini_file('.env', false, INI_SCANNER_RAW); // Load environment variables from .env file
+
+      // Define constants for configurations
+      define("APP_NAME", $_ENV["APP_NAME"]);
+      define("THEME", $_ENV["THEME"]);
+      define('ROOT', $_ENV["APP_PATH"]);
+      define('DB_TYPE', $_ENV["DB_CONNECTION"]);
+      define('DB_HOST', $_ENV["DB_HOST"]);
+      define('DB_NAME', $_ENV["DB_DATABASE"]);
+      define('DB_USER', $_ENV["DB_USERNAME"]);
+      define('DB_PASS', $_ENV["DB_PASSWORD"]);
+      ```
+    - Explanation:
+      - `parse_ini_file()` reads settings from a .env file into `$_ENV`.
+      - Constants are defined based on `$_ENV` values for easy configuration management.
+
+11. **public/index.php**
+    - The main entry point for HTTP requests, initializing and running the application.
+    - Code Example:
+      ```php
+      <?php
+      session_start(); // Start session handling for the application 
+
+      require_once '../vendor/autoload.php'; // Include Composer autoloader
+      include "../app/init.php"; // Load configurations and constants
+
+      $app = new App(dirname(__DIR__)); // Initialize the application
+      require_once '../app/routes/web.php'; // Include web routes
+
+      $app->run(); // Start processing requests
+      ```
+    - Explanation:
+      - `session_start()` enables session management.
+      - `$app->run()` starts the CoreXPHP application, resolving routes and handling requests.
+
+
+
+12. **app/helpers/functions.php**
+    -Provides helper functions for various tasks, such as redirecting and generating unique IDs.
+    Code Example:
+    ```php
+    <?php
+    function redirect($path) {
+        header('Location: ' . ROOT . '/' . $path);
+        exit; // Redirects to the specified path and exits
+    }
+
+    function generateUniqueId($length = 16) {
+        $chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $result = '';
+        for ($i = 0; $i < $length; $i++) {
+            $result .= $chars[random_int(0, strlen($chars) - 1)];
+        }
+        return $result; // Generates a unique ID with the specified length
+    }
+    -Explanation:
+    -redirect() function redirects the user to a specified path within the application.
+    -generateUniqueId() creates a random unique identifier of a specified length, useful for generating unique tokens.
+13. **app/routes/web.php**
+    -Registers routes for the application, mapping URL paths to controller actions.
+    Code Example:
+    ```php
+
+    <?php
+    $app->router->get('', 'index'); // Define the root route
+    $app->router->get('/home', [HomeController::class, 'index']); // Define a route for home page
+    $app->router->get('/user/{id}', [UserController::class, 'show']); // Dynamic route with a parameter
+    
+    -Explanation:
+    -This file defines routes, allowing the application to handle requests for specific URLs.
+    -Dynamic routes capture URL parameters, such as user ID, for use in controller actions.
+
+
+<?php
+
+/**
+ * CoreXPHP Base Model Class
+ * 
+ * This is the base model every other model should extend.
+ * It provides CRUD operations, relationship handling, search, filtering, pagination, etc.
+ */
+class Model
+{
+    protected $table;
+    protected $primaryKey = 'id';
+    protected $db;
+    protected $query;
+    protected $orders = [];
+
+    public function __construct()
+    {
+        $this->db = Database::getInstance()->getConnection();
+        $this->query = new QueryBuilder($this->db, $this->table);
+    }
+
+    /** Create a new record */
+    public function create($data)
+    {
+        return $this->db->insert($this->table, $data);
+    }
+
+    /** Find by primary key */
+    public function find($id)
+    {
+        return $this->db->select($this->table, '*')->where($this->primaryKey, '=', $id)->first();
+    }
+
+    /** Update a record by ID */
+    public function update($data, $id)
+    {
+        return $this->db->update($this->table, $data)->where($this->primaryKey, '=', $id);
+    }
+
+    /** Delete a record by ID */
+    public function delete($id)
+    {
+        return $this->db->delete($this->table)->where($this->primaryKey, '=', $id);
+    }
+
+    /** Truncate the entire table */
+    public function truncate()
+    {
+        return $this->db->truncate($this->table);
+    }
+
+    /** Save the current model (insert or update based on primaryKey presence) */
+    public function save()
+    {
+        if (isset($this->{$this->primaryKey})) {
+            return $this->update(get_object_vars($this), $this->{$this->primaryKey});
+        } else {
+            return $this->create(get_object_vars($this));
+        }
+    }
+
+    /** Apply dynamic filters */
+    public function filter($conditions)
+    {
+        foreach ($conditions as $column => $value) {
+            if (is_array($value)) {
+                $this->whereIn($column, $value);
+            } elseif ($value === 'NULL') {
+                $this->whereNull($column);
+            } elseif ($value === 'NOT NULL') {
+                $this->whereNotNull($column);
+            } else {
+                $this->where($column, '=', $value);
+            }
+        }
+        return $this;
+    }
+
+    /** Search across multiple columns */
+    public function search($term, $columns)
+    {
+        $this->where(function ($query) use ($term, $columns) {
+            foreach ($columns as $column) {
+                $query->orWhere($column, 'LIKE', '%' . $term . '%');
+            }
+        });
+        return $this;
+    }
+
+    /** Add orderBy clause */
+    public function orderBy($column, $direction = 'desc')
+    {
+        $this->orders[] = [$column, strtoupper($direction)];
+        return $this;
+    }
+
+    /** Paginate results */
+    public function paginate($page, $perPage)
+    {
+        $offset = ($page - 1) * $perPage;
+        $this->limit($perPage)->offset($offset);
+
+        $data = $this->get();
+        $total = $this->count();
+        $totalPages = ceil($total / $perPage);
+
+        return [
+            'data' => $data,
+            'meta' => [
+                'total'       => $total,
+                'totalPages'  => $totalPages,
+                'currentPage' => $page,
+                'perPage'     => $perPage,
+            ],
+        ];
+    }
+
+    /** Select columns */
+    public function select($columns)
+    {
+        $this->query->select($columns);
+        return $this;
+    }
+
+    /** Get all records */
+    public function all()
+    {
+        return $this->db->select($this->table, '*')->get();
+    }
+
+    /** Get the first record */
+    public function first()
+    {
+        return $this->db->select($this->table, '*')->first();
+    }
+
+    /** Add where clause */
+    public function where($column, $operator, $value)
+    {
+        $this->query->where($column, $operator, $value);
+        return $this;
+    }
+
+    /** Where IN */
+    public function whereIn($column, $values)
+    {
+        $this->query->whereIn($column, $values);
+        return $this;
+    }
+
+    /** Where NULL */
+    public function whereNull($column)
+    {
+        $this->query->whereNull($column);
+        return $this;
+    }
+
+    /** Where NOT NULL */
+    public function whereNotNull($column)
+    {
+        $this->query->whereNotNull($column);
+        return $this;
+    }
+
+    /** Limit results */
+    public function limit($limit)
+    {
+        $this->query->limit($limit);
+        return $this;
+    }
+
+    /** Offset results */
+    public function offset($offset)
+    {
+        $this->query->offset($offset);
+        return $this;
+    }
+
+    /** Get query results */
+    public function get()
+    {
+        return $this->query->get();
+    }
+
+    /** Count results */
+    public function count()
+    {
+        return $this->query->count();
+    }
+
+    /** Convert model to array */
+    public function toArray(): array
+    {
+        return get_object_vars($this);
+    }
+
+    /** Convert model to JSON */
+    public function toJson(): string
+    {
+        return json_encode($this->toArray());
+    }
+
+    /** Get raw SQL */
+    public function toSql(): string
+    {
+        return $this->query->toSql();
+    }
+
+    /** Log query to file */
+    public function logQuery(): void
+    {
+        $sql = $this->toSql();
+        $logFile = __DIR__ . '/queries.log';
+        file_put_contents($logFile, $sql . PHP_EOL, FILE_APPEND);
+    }
+
+    /** Get table name */
+    public function getTable(): string
+    {
+        return $this->table;
+    }
+
+    /** Get primary key name */
+    public function getPrimaryKey(): string
+    {
+        return $this->primaryKey;
+    }
+
+    /** Cast attributes (optional) */
+    public function castAttributes($row)
+    {
+        // You can add logic for type casting here.
+    }
+
+    /** One-to-One relation */
+    public function hasOne($relatedModel, $foreignKey, $localKey = null)
+    {
+        $localKey = $localKey ?? $this->primaryKey;
+        $related = new $relatedModel;
+        return $related->where($foreignKey, '=', $this->{$localKey})->first();
+    }
+
+    /** One-to-Many relation */
+    public function hasMany($relatedModel, $foreignKey, $localKey = null)
+    {
+        $localKey = $localKey ?? $this->primaryKey;
+        $related = new $relatedModel;
+        return $related->where($foreignKey, '=', $this->{$localKey})->all();
+    }
+
+    /** BelongsTo (inverse of hasOne) */
+    public function belongsTo($relatedModel, $foreignKey, $ownerKey = 'id')
+    {
+        $related = new $relatedModel;
+        return $related->where($ownerKey, '=', $this->{$foreignKey})->first();
+    }
+
+    /** Many-to-Many */
+    public function belongsToMany($relatedModel, $pivotTable, $foreignPivotKey, $relatedPivotKey, $localKey = null)
+    {
+        $localKey = $localKey ?? $this->primaryKey;
+        $related = new $relatedModel;
+        $relatedTable = $related->getTable();
+
+        $sql = "
+            SELECT $relatedTable.*
+            FROM $relatedTable
+            JOIN $pivotTable ON $pivotTable.$relatedPivotKey = $relatedTable.{$related->getPrimaryKey()}
+            WHERE $pivotTable.$foreignPivotKey = :foreignId
+        ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['foreignId' => $this->{$localKey}]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /** MorphMany Polymorphic */
+    public function morphMany($relatedModel, $morphType, $morphId)
+    {
+        $related = new $relatedModel;
+        return $related->where($morphType, '=', static::class)
+            ->where($morphId, '=', $this->{$this->primaryKey})
+            ->all();
+    }
+
+    /** MorphTo Polymorphic */
+    public function morphTo($typeField, $idField)
+    {
+        $relatedClass = $this->{$typeField};
+        $relatedId = $this->{$idField};
+
+        if (!class_exists($relatedClass)) return null;
+
+        $related = new $relatedClass;
+        return $related->find($relatedId);
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "inquiryId": "integer|primary_key|auto_increment",
+    "name": "string|max:100",
+    "email": "string|max:150",
+    "phone": "string|max:20|nullable",
+    "eventType": "string|max:100",
+    "message": "text",
+    "inquiryCreatedAt": "timestamp",
+    "inquiryUpdatedAt": "timestamp",
+    "inquiryIdentify": "string|max:50"
+}
