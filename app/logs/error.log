@@ -1,0 +1,11 @@
+[2025-05-01 12:30:15] [ERROR] SQLSTATE[42000]: Syntax error or access violation: 1701 Cannot truncate a table referenced in a foreign key constraint (`digitalagency`.`payments`, CONSTRAINT `payments_ibfk_1` FOREIGN KEY (`orderId`) REFERENCES `digitalagency`.`orders` (`orderId`))
+[2025-05-01 12:30:15] [ERROR] File: D:\xampp\htdocs\CoreXPHP\app\core\Model.php Line: 177
+[2025-05-01 12:30:15] [ERROR] Trace: #0 D:\xampp\htdocs\CoreXPHP\app\core\Model.php(177): PDO->exec('TRUNCATE TABLE ...')
+#1 D:\xampp\htdocs\CoreXPHP\app\controllers\HomeController.php(7): Model->truncate()
+#2 [internal function]: HomeController->index()
+#3 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(156): ReflectionMethod->invokeArgs(Object(HomeController), Array)
+#4 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(88): Router->invokeControllerMethod(Object(HomeController), 'index', Array)
+#5 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(109): Router->{closure}(Object(Request))
+#6 D:\xampp\htdocs\CoreXPHP\app\core\App.php(57): Router->resolve()
+#7 D:\xampp\htdocs\CoreXPHP\public\index.php(24): App->run()
+#8 {main}

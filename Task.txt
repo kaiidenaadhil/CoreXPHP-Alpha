@@ -30,4 +30,134 @@ Make Auto Created MVC from ~ dev with newly added functionalities .
 
 2 .Check pagination, Short , Filter etc
 
+                Here is a categorized list of all the major clauses and methods from your QueryBuilder and Model classes, along with their test status:
+
+                ✅ Filter Clauses
+                where,orWhere,whereIn,whereNotIn,whereBetween,whereNotBetween
+
+                whereNull,whereNotNull,whereRaw
+
+                ✅ Join Clauses
+                join
+
+                ✅ Group Clauses
+                groupBy,having
+
+                ✅ Ordering Clauses
+                orderBy
+
+                ✅ Pagination
+                paginate,limit,offset
+
+                ✅ Selection
+                select,get,first
+
+                ✅ Aggregation
+                count,sum,avg,min,max
+
+                ✅ Debugging
+                toSql,logQuery
+
+                ✅ Utility
+                quoteIdentifier,createBindingKey
+
+                ✅ Insert / Update / Delete
+                insert,update,delete,truncate
+
+You’ve already successfully tested all of the above in various chained or individual findAll() calls. Now, would you like me to start giving you compound test cases mixing multiple clauses (e.g., filter + group + having + paginate + sort) or focus on a specific type next? ​
+
 3. Adding New Features in view pdf, export csv , import csv,bulk delete , bulk .
+
+
+🔧 Prompt: Advanced Testing & Refactoring of CoreXPHP Framework Methods
+
+I want you to act as a senior PHP framework architect and test engineer reviewing the CoreXPHP custom framework. Your goal is to deeply test, improve, and future-proof the framework’s core methods, especially:
+
+✅ Target Areas:
+1. QueryBuilder Class
+CRUD: insert(), update(), delete(), truncate()
+
+Filters: where, orWhere, whereIn, whereNotIn, whereBetween, whereNotBetween, whereNull, whereNotNull, whereRaw
+
+Joins: join()
+
+Groups: groupBy(), having()
+
+Aggregation: count(), sum(), avg(), min(), max()
+
+Selection: select(), selectRaw(), get(), first()
+
+Pagination: paginate(), limit(), offset()
+
+Debugging: toSql(), logQuery()
+
+Utilities: quoteIdentifier(), createBindingKey()
+
+2. Model Class
+create(), update(), delete(), truncate()
+
+find(), first(), all(), save()
+
+Eager relationships (if implemented): belongsTo(), hasMany()
+
+toArray(), toJson(), toSql()
+
+🧪 Your Tasks:
+Test and break each method with edge cases (e.g., missing fields, invalid joins, empty arrays, no primary key).
+
+Refactor or propose better versions of each method with improved safety, performance, and readability.
+
+Ensure all return types are chainable, consistent, and error-proof.
+
+Suggest unit test structure or test case files per class method.
+
+Optimize query building to avoid redundant logic (e.g., repeated WHERE, unsafe raw injections).
+
+
+
+🔍 Format Expected:
+✅ Test case scenario name
+
+✅ Problem discovered (if any)
+
+✅ Refactored/fixed method
+
+✅ Reason for the improvement
+
+✅ Example usage (before vs after)
+
+
+
+
+
+
+Category,Function,Example
+Filtering,where,"$model->findAll()->where('status', 'lost')->get();"
+Filtering,orWhere,"$model->findAll()->where('status', 'lost')->orWhere('status', 'new')->get();"
+Filtering,whereIn,"$model->findAll()->whereIn('status', ['lost', 'converted'])->get();"
+Filtering,whereBetween,"$model->findAll()->whereBetween('leadId', [1, 10])->get();"
+Filtering,whereNull,$model->findAll()->whereNull('email')->get();
+Filtering,whereNotNull,$model->findAll()->whereNotNull('email')->get();
+Filtering,whereRaw,"$model->findAll()->whereRaw('status = ""lost""')->get();"
+Joins,join,"$model->findAll()->join('users', 'leads.userId', '=', 'users.id')->get();"
+Group By,groupBy,"$model->findAll()->selectRaw('status, COUNT(*) as count')->groupBy('status')->get();"
+Group By,having,"$model->findAll()->selectRaw('status, COUNT(*) as count')->groupBy('status')->having('count', '>', 1)->get();"
+Ordering,orderBy,"$model->findAll()->orderBy('createdAt', 'desc')->get();"
+Pagination,paginate,"$model->findAll()->paginate(1, 5)->get();"
+Selection,select,"$model->findAll()->select(['name', 'email'])->get();"
+Selection,first,"$model->findAll()->where('status', 'lost')->first();"
+Selection,all,$model->all()->getAll();
+Aggregation,count,"$model->findAll()->where('status', 'lost')->count();"
+Aggregation,sum,"$model->findAll()->where('status', 'paid')->sum('amount');"
+Aggregation,avg,$model->findAll()->avg('amount');
+Aggregation,min,$model->findAll()->min('amount');
+Aggregation,max,$model->findAll()->max('amount');
+Debugging,toSql,"$model->findAll()->where('status', 'lost')->toSql();"
+Debugging,logQuery,"$model->findAll()->where('status', 'lost')->logQuery();"
+CRUD,insert,$model->insert([...]);
+CRUD,create,$model->create([...]);
+CRUD,find,$model->find(52);
+CRUD,update,"$model->update([...], 52);"
+CRUD,delete,$model->delete(52);
+CRUD,truncate,$model->truncate();
+CRUD,save,$model->fill([...])->save();

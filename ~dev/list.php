@@ -1,6 +1,6 @@
 <?php
 
-$_ENV = parse_ini_file('./../app/.env', false, INI_SCANNER_RAW);
+$_ENV = parse_ini_file('./../app/config/.env', false, INI_SCANNER_RAW);
 define("APP_NAME",$_ENV["APP_NAME"]);
 define("THEME",$_ENV["THEME"]);
 define('DB_TYPE',$_ENV["DB_CONNECTION"]);

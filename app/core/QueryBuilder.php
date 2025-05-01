@@ -49,6 +49,63 @@ class QueryBuilder
         }
     }
 
+    protected function getWhereClause()
+    {
+        if (!empty($this->wheres)) {
+            $this->whereAdded = true;
+            return " WHERE " . implode(' AND ', $this->wheres);
+        }
+        return "";
+    }
+      /*================== CRUD ==================*/
+
+      public function insert($data)
+      {
+          $columns = implode(", ", array_map([$this, 'quoteIdentifier'], array_keys($data)));
+          $placeholders = ":" . implode(", :", array_keys($data));
+          $this->query = "INSERT INTO " . $this->quoteIdentifier($this->table) . " ($columns) VALUES ($placeholders)";
+          $this->bindings = $data;
+          return $this->execute();
+      }
+  
+      public function update($data)
+      {
+
+          if (empty($this->wheres)) {
+            throw new Exception("Update/Delete operation requires a WHERE clause.");
+        }
+        
+          $set = [];
+          foreach ($data as $col => $val) {
+              $set[] = $this->quoteIdentifier($col) . " = :$col";
+              $this->bindings[$col] = $val;
+          }
+  
+          $this->query = "UPDATE " . $this->quoteIdentifier($this->table)
+                       . " SET " . implode(", ", $set)
+                       . " " . $this->getWhereClause();
+  
+          return $this->execute();
+      }
+  
+      public function delete()
+      {
+        if (empty($this->wheres)) {
+            throw new Exception("Update/Delete operation requires a WHERE clause.");
+        }
+        
+          $this->query = "DELETE FROM " . $this->quoteIdentifier($this->table) . " " . $this->getWhereClause();
+          return $this->execute();
+      }
+  
+      public function truncate()
+      {
+          $this->query = "TRUNCATE TABLE " . $this->quoteIdentifier($this->table);
+          return $this->execute();
+      }
+  
+      /*================== WHERE ==================*/
+
     // === Join Clauses ===
     public function join($table, $first, $operator, $second, $type = 'INNER')
     {
@@ -97,6 +154,8 @@ class QueryBuilder
         $this->bindings[$key] = $value;
         return $this;
     }
+
+    
 
     public function orWhere($column, $operator = null, $value = null)
     {
@@ -178,6 +237,24 @@ class QueryBuilder
         return $this;
     }
 
+
+    public function first()
+    {
+        $this->limit(1);
+        $results = $this->get();
+        return $results[0] ?? null;
+    }
+    
+
+
+    public function selectRaw($rawSql)
+{
+    $this->query = "SELECT $rawSql FROM " . $this->quoteIdentifier($this->table);
+    return $this;
+}
+
+
+
     // === Ordering, Limit, Offset ===
     public function orderBy($column, $direction = 'ASC')
     {
@@ -251,6 +328,46 @@ class QueryBuilder
         return (int)($result->aggregate ?? 0);
     }
 
+
+    public function sum($column)
+{
+    return $this->aggregate("SUM", $column);
+}
+
+public function avg($column)
+{
+    return $this->aggregate("AVG", $column);
+}
+
+public function min($column)
+{
+    return $this->aggregate("MIN", $column);
+}
+
+public function max($column)
+{
+    return $this->aggregate("MAX", $column);
+}
+
+protected function aggregate($function, $column)
+{
+    $sql = "SELECT $function(" . $this->quoteIdentifier($column) . ") AS value FROM " . $this->quoteIdentifier($this->table);
+
+    if (!empty($this->wheres)) {
+        $sql .= " WHERE " . implode(' AND ', $this->wheres);
+    }
+
+    $stmt = $this->db->prepare($sql);
+    foreach ($this->bindings as $key => $val) {
+        $stmt->bindValue(":$key", $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_OBJ);
+    return $result->value ?? 0;
+}
+
+
     public function paginate($page = 1, $perPage = 15)
     {
         $this->isPaginated = true;
@@ -268,7 +385,42 @@ class QueryBuilder
         return $this;
     }
 
+
     // === Helper Methods ===
+
+// === Debugging Helpers ===
+public function toSql()
+{
+    $sql = $this->query ?: "SELECT * FROM " . $this->quoteIdentifier($this->table);
+
+    if (!empty($this->joins)) $sql .= ' ' . implode(' ', $this->joins);
+    if (!empty($this->wheres)) $sql .= " WHERE " . implode(' AND ', $this->wheres);
+    if (!empty($this->groups)) $sql .= " GROUP BY " . implode(', ', $this->groups);
+    if (!empty($this->havings)) $sql .= " HAVING " . implode(' AND ', $this->havings);
+    if (!empty($this->order)) $sql .= " " . $this->order;
+    if (isset($this->limit)) $sql .= " LIMIT " . $this->limit;
+    if (isset($this->offset)) $sql .= " OFFSET " . $this->offset;
+
+    foreach ($this->bindings as $key => $val) {
+        $val = is_numeric($val) ? $val : "'$val'";
+        $sql = str_replace(":$key", $val, $sql);
+    }
+
+    return $sql;
+}
+
+public function logQuery($file = '../logs/query.log')
+{
+    $sql = $this->toSql();
+    if (!is_dir(dirname($file))) {
+        mkdir(dirname($file), 0777, true);
+    }
+    file_put_contents($file, "[" . date('Y-m-d H:i:s') . "] " . $sql . PHP_EOL, FILE_APPEND);
+    return $this;
+}
+
+
+
     protected function quoteIdentifier($identifier)
     {
         $parts = explode('.', $identifier);

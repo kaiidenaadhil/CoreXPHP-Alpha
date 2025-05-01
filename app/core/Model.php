@@ -156,9 +156,17 @@ class Model
     public function update($data, $id)
     {
         $data = array_intersect_key($data, array_flip(array_diff($this->prepareFields(), $this->guarded)));
+    
+        // Ensure $this->query is initialized
+        if (!$this->query) {
+            $this->query = QueryBuilder::table($this->table);
+        }
+    
         return $this->query->where($this->primaryKey, '=', $id)->update($data);
     }
-
+    
+    
+    
     public function delete($id)
     {
         return $this->query->where($this->primaryKey, '=', $id)->delete();
@@ -166,9 +174,11 @@ class Model
 
     public function truncate()
     {
-        return $this->db->exec("TRUNCATE TABLE {$this->table}");
+        $this->db->exec("SET FOREIGN_KEY_CHECKS=0");
+        $this->db->exec("TRUNCATE TABLE {$this->table}");
+        $this->db->exec("SET FOREIGN_KEY_CHECKS=1");
+        return true;
     }
-
     public function save()
     {
         if (isset($this->attributes[$this->primaryKey])) {

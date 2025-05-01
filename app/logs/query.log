@@ -1,1 +1,1 @@
-
+[2025-05-01 10:11:30] SELECT * FROM `orders` WHERE `status` = 'paid' ORDER BY `amount` DESC
