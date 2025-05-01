@@ -1181,12 +1181,12 @@ class Paginator
 
 
 <?php
+<?php
 
 /**
  * CoreXPHP Base Model Class
  * 
- * This is the base model every other model should extend.
- * It provides CRUD operations, relationship handling, search, filtering, pagination, etc.
+ * Base model providing CRUD, relationships, search, filtering, pagination, etc.
  */
 class Model
 {
@@ -1194,55 +1194,119 @@ class Model
     protected $primaryKey = 'id';
     protected $db;
     protected $query;
+    protected array $attributes = []; // Store fields here
+    protected array $columns = [];    // All columns
+    protected array $fields = [];     // Fields allowed for create/update
+    protected array $filters = [];    // Fields allowed for search
+    protected array $guarded = [];    // Dynamic and manual guarded fields
+    protected bool $fieldsPrepared = false;
     protected $orders = [];
 
     public function __construct()
     {
         $this->db = Database::getInstance()->getConnection();
-        $this->query = new QueryBuilder($this->db, $this->table);
+
+        if (!$this->table) {
+            throw new Exception("Model table is not defined in class: " . static::class);
+        }
+
+        $this->query = QueryBuilder::table($this->table);
     }
 
-    /** Create a new record */
+    // --- Prepare Fields ---
+
+    protected function prepareFields()
+    {
+        if ($this->fieldsPrepared) return $this->fields;
+
+        $stmt = $this->db->prepare("SHOW COLUMNS FROM {$this->table}");
+        $stmt->execute();
+        $columns = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($columns as $column) {
+            $fieldName = $column['Field'];
+            $fieldType = strtolower($column['Type']);
+
+            $this->columns[] = $fieldName;
+
+            // Guard fields that end with 'id'
+            if (preg_match('/id$/i', $fieldName)) {
+                $this->guarded[] = $fieldName;
+            }
+
+            if (!in_array($fieldName, $this->guarded)) {
+                $this->fields[] = $fieldName;
+            }
+
+            if (strpos($fieldType, 'varchar') !== false || strpos($fieldType, 'text') !== false || strpos($fieldType, 'enum') !== false) {
+                $this->filters[] = $fieldName;
+            }
+        }
+
+        $this->fieldsPrepared = true;
+        return $this->fields;
+    }
+
+    // --- Magic Methods ---
+
+    public function __get($key)
+    {
+        return $this->attributes[$key] ?? null;
+    }
+
+    public function __set($key, $value)
+    {
+        $this->attributes[$key] = $value;
+    }
+
+    // --- Core CRUD ---
+
     public function create($data)
     {
-        return $this->db->insert($this->table, $data);
+        $data = array_intersect_key($data, array_flip(array_diff($this->prepareFields(), $this->guarded)));
+        return $this->query->insert($data);
     }
 
-    /** Find by primary key */
     public function find($id)
     {
-        return $this->db->select($this->table, '*')->where($this->primaryKey, '=', $id)->first();
+        $row = QueryBuilder::table($this->table)->where($this->primaryKey, '=', $id)->first();
+
+        if (!$row) {
+            return null;
+        }
+
+        $model = new static();
+        $model->fill(get_object_vars($row));
+        return $model;
     }
 
-    /** Update a record by ID */
     public function update($data, $id)
     {
-        return $this->db->update($this->table, $data)->where($this->primaryKey, '=', $id);
+        $data = array_intersect_key($data, array_flip(array_diff($this->prepareFields(), $this->guarded)));
+        return $this->query->where($this->primaryKey, '=', $id)->update($data);
     }
 
-    /** Delete a record by ID */
     public function delete($id)
     {
-        return $this->db->delete($this->table)->where($this->primaryKey, '=', $id);
+        return $this->query->where($this->primaryKey, '=', $id)->delete();
     }
 
-    /** Truncate the entire table */
     public function truncate()
     {
-        return $this->db->truncate($this->table);
+        return $this->db->exec("TRUNCATE TABLE {$this->table}");
     }
 
-    /** Save the current model (insert or update based on primaryKey presence) */
     public function save()
     {
-        if (isset($this->{$this->primaryKey})) {
-            return $this->update(get_object_vars($this), $this->{$this->primaryKey});
+        if (isset($this->attributes[$this->primaryKey])) {
+            return $this->update($this->attributes, $this->attributes[$this->primaryKey]);
         } else {
-            return $this->create(get_object_vars($this));
+            return $this->create($this->attributes);
         }
     }
 
-    /** Apply dynamic filters */
+    // --- Query Builder Wrappers ---
+
     public function filter($conditions)
     {
         foreach ($conditions as $column => $value) {
@@ -1259,7 +1323,6 @@ class Model
         return $this;
     }
 
-    /** Search across multiple columns */
     public function search($term, $columns)
     {
         $this->where(function ($query) use ($term, $columns) {
@@ -1270,14 +1333,12 @@ class Model
         return $this;
     }
 
-    /** Add orderBy clause */
     public function orderBy($column, $direction = 'desc')
     {
-        $this->orders[] = [$column, strtoupper($direction)];
+        $this->query->orderBy($column, $direction);
         return $this;
     }
 
-    /** Paginate results */
     public function paginate($page, $perPage)
     {
         $offset = ($page - 1) * $perPage;
@@ -1298,98 +1359,160 @@ class Model
         ];
     }
 
-    /** Select columns */
     public function select($columns)
     {
         $this->query->select($columns);
         return $this;
     }
 
-    /** Get all records */
     public function all()
     {
-        return $this->db->select($this->table, '*')->get();
+        $rows = $this->query->get();
+
+        $models = [];
+        foreach ($rows as $row) {
+            $model = new static();
+            $model->fill(get_object_vars($row));
+            $models[] = $model;
+        }
+
+        return $models;
     }
 
-    /** Get the first record */
+    public function findAll(array $options = [])
+    {
+        $this->prepareFields();
+    
+        // Apply filters
+        if (isset($options['filters']) && is_array($options['filters'])) {
+            foreach ($options['filters'] as $column => $value) {
+                if (in_array($column, $this->columns)) {
+                    $this->where($column, '=', $value);
+                }
+            }
+        }
+    
+        // Apply search
+        if (isset($options['search']) && is_array($options['search'])) {
+            $term = $options['search']['term'] ?? null;
+            $columns = $options['search']['columns'] ?? $this->filters;
+    
+            if ($term) {
+                $this->where(function ($query) use ($term, $columns) {
+                    foreach ($columns as $column) {
+                        if (in_array($column, $this->columns)) {
+                            $query->orWhere($column, 'LIKE', '%' . $term . '%');
+                        }
+                    }
+                });
+            }
+        }
+    
+        // Apply sort
+        if (isset($options['sort']) && isset($options['sort']['column'])) {
+            $direction = $options['sort']['direction'] ?? 'asc';
+            $this->orderBy($options['sort']['column'], $direction);
+        }
+    
+        // Apply pagination
+        if (isset($options['pagination']) && $options['pagination']['enabled']) {
+            $page = $options['pagination']['page'] ?? 1;
+            $perPage = $options['pagination']['perPage'] ?? 10;
+    
+            // 🔥 Instead of just setting limit/offset, directly call paginate()
+            return $this->paginate($page, $perPage);
+        }
+    
+        // If pagination not enabled, return the builder (normal)
+        return $this;
+    }
+    
+
     public function first()
     {
-        return $this->db->select($this->table, '*')->first();
+        $row = $this->query->first();
+
+        if (!$row) {
+            return null;
+        }
+
+        $model = new static();
+        $model->fill(get_object_vars($row));
+        return $model;
     }
 
-    /** Add where clause */
     public function where($column, $operator, $value)
     {
         $this->query->where($column, $operator, $value);
         return $this;
     }
 
-    /** Where IN */
     public function whereIn($column, $values)
     {
         $this->query->whereIn($column, $values);
         return $this;
     }
 
-    /** Where NULL */
     public function whereNull($column)
     {
         $this->query->whereNull($column);
         return $this;
     }
 
-    /** Where NOT NULL */
     public function whereNotNull($column)
     {
         $this->query->whereNotNull($column);
         return $this;
     }
 
-    /** Limit results */
     public function limit($limit)
     {
         $this->query->limit($limit);
         return $this;
     }
 
-    /** Offset results */
     public function offset($offset)
     {
         $this->query->offset($offset);
         return $this;
     }
 
-    /** Get query results */
     public function get()
     {
-        return $this->query->get();
+        $rows = $this->query->get();
+
+        $models = [];
+        foreach ($rows as $row) {
+            $model = new static();
+            $model->fill(get_object_vars($row));
+            $models[] = $model;
+        }
+
+        return $models;
     }
 
-    /** Count results */
     public function count()
     {
         return $this->query->count();
     }
 
-    /** Convert model to array */
+    // --- Helper Methods ---
+
     public function toArray(): array
     {
-        return get_object_vars($this);
+        return $this->attributes;
     }
 
-    /** Convert model to JSON */
     public function toJson(): string
     {
         return json_encode($this->toArray());
     }
 
-    /** Get raw SQL */
     public function toSql(): string
     {
         return $this->query->toSql();
     }
 
-    /** Log query to file */
     public function logQuery(): void
     {
         $sql = $this->toSql();
@@ -1397,50 +1520,71 @@ class Model
         file_put_contents($logFile, $sql . PHP_EOL, FILE_APPEND);
     }
 
-    /** Get table name */
     public function getTable(): string
     {
         return $this->table;
     }
 
-    /** Get primary key name */
     public function getPrimaryKey(): string
     {
         return $this->primaryKey;
     }
 
-    /** Cast attributes (optional) */
-    public function castAttributes($row)
+    public function fill(array $data)
     {
-        // You can add logic for type casting here.
+        foreach ($data as $key => $value) {
+            $this->attributes[$key] = $value;
+        }
+        return $this;
     }
 
-    /** One-to-One relation */
+    // --- Internal Auto-Loader for Related Models ---
+
+    protected function loadModelIfNotExists($modelClass)
+    {
+        if (!class_exists($modelClass)) {
+            $modelPath = "../app/models/" . $modelClass . ".php";
+
+            if (file_exists($modelPath)) {
+                require_once $modelPath;
+            } else {
+                throw new Exception("Related model $modelClass not found at $modelPath");
+            }
+        }
+    }
+
+    // --- Relationship Methods with Autoloading ---
+
     public function hasOne($relatedModel, $foreignKey, $localKey = null)
     {
+        $this->loadModelIfNotExists($relatedModel);
+
         $localKey = $localKey ?? $this->primaryKey;
         $related = new $relatedModel;
         return $related->where($foreignKey, '=', $this->{$localKey})->first();
     }
 
-    /** One-to-Many relation */
     public function hasMany($relatedModel, $foreignKey, $localKey = null)
     {
+        $this->loadModelIfNotExists($relatedModel);
+
         $localKey = $localKey ?? $this->primaryKey;
         $related = new $relatedModel;
         return $related->where($foreignKey, '=', $this->{$localKey})->all();
     }
 
-    /** BelongsTo (inverse of hasOne) */
     public function belongsTo($relatedModel, $foreignKey, $ownerKey = 'id')
     {
+        $this->loadModelIfNotExists($relatedModel);
+
         $related = new $relatedModel;
         return $related->where($ownerKey, '=', $this->{$foreignKey})->first();
     }
 
-    /** Many-to-Many */
     public function belongsToMany($relatedModel, $pivotTable, $foreignPivotKey, $relatedPivotKey, $localKey = null)
     {
+        $this->loadModelIfNotExists($relatedModel);
+
         $localKey = $localKey ?? $this->primaryKey;
         $related = new $relatedModel;
         $relatedTable = $related->getTable();
@@ -1455,25 +1599,40 @@ class Model
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['foreignId' => $this->{$localKey}]);
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $rows = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+        $models = [];
+        foreach ($rows as $row) {
+            $model = new $relatedModel();
+            $model->fill(get_object_vars($row));
+            $models[] = $model;
+        }
+
+        return $models;
     }
 
-    /** MorphMany Polymorphic */
     public function morphMany($relatedModel, $morphType, $morphId)
     {
+        $this->loadModelIfNotExists($relatedModel);
+
         $related = new $relatedModel;
         return $related->where($morphType, '=', static::class)
             ->where($morphId, '=', $this->{$this->primaryKey})
             ->all();
     }
 
-    /** MorphTo Polymorphic */
     public function morphTo($typeField, $idField)
     {
         $relatedClass = $this->{$typeField};
         $relatedId = $this->{$idField};
 
-        if (!class_exists($relatedClass)) return null;
+        if (!class_exists($relatedClass)) {
+            $this->loadModelIfNotExists($relatedClass);
+        }
+
+        if (!class_exists($relatedClass)) {
+            return null;
+        }
 
         $related = new $relatedClass;
         return $related->find($relatedId);
