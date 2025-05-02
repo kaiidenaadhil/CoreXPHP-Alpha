@@ -12,3 +12,5 @@ $app->router->get('/test', function () {
 
 $app->router->resource('admin/media', 'media', MediaController::class);
 $app->router->resource('admin/leads', 'lead', LeadsController::class);
+
+$app->router->resource('admin/product', 'product',ProductController::class);

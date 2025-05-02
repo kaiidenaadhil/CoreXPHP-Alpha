@@ -2,12 +2,30 @@
 
 class HomeController extends Controller
 {
+    public function index()
+    {
+        $success = $this->model('LeadModel')->update([
+            'status' => 'converted',
+            'phone' => '01999999999'
+        ], 17); // Update leadId 1
     
-    public function index() {
-        $result = $this->model('OrderModel')->truncate();
-    
-        echo $result !== false ? '✅ Orders table truncated' : '❌ Truncate failed';
+        echo $success ? "✅ Lead updated." : "❌ Update failed.";
     }
+
+
+    // public function index()
+    // {
+
+    //     $users = $this->model('userModel')->get();
+    // p($users);
+    
+    
+    // }
+    // public function index() {
+    //     $result = $this->model('OrderModel')->truncate();
+    
+    //     echo $result !== false ? '✅ Orders table truncated' : '❌ Truncate failed';
+    // }
     
 
     // public function index() {

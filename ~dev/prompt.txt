@@ -1,150 +1,3 @@
-Overview:
-
-The Database Schema Generator is a user-friendly, interactive web tool designed to help developers efficiently generate SQL schema definitions. This tool simplifies the creation of database tables by allowing users to define fields, data types, constraints, and relationships, all in a dynamic, real-time interface.
-
-Features:
-
-Flexible Data Type Support:
-
-Choose from a variety of data types, including integer, string, timestamp, enum, boolean, and float, to match the specific requirements of your database schema.
-
-Real-Time Schema Preview:
-
-As users add and modify fields, the tool instantly updates a JSON-based schema preview, providing immediate feedback and ensuring that your database design is structured correctly.
-
-Primary Key & Auto Increment Logic:
-
-Automatically apply auto_increment when selecting a primary_key data type, ensuring compatibility with common SQL practices. The tool prevents conflicting settings and disables unnecessary input options once primary_key is selected.
-
-Foreign Key Management:
-
-Easily define foreign key relationships by inputting the referencing table and column using the format ForeignTable:ForeignKey, ensuring referential integrity in your database schema.
-
-Dynamic Table Creation:
-
-Add or remove fields dynamically using the Add Row and Delete Row buttons, making schema creation faster and more intuitive.
-
-Validation & Constraints:
-
-Set field constraints such as nullable, unique, max length, or enum values based on user input. Constraints are applied intelligently to avoid conflicts and ensure proper SQL generation.
-
-Responsive Design:
-
-The tool adapts to various screen sizes, allowing developers to generate and manage database schemas efficiently on both desktop and mobile devices.
-
-Security & Robust Error Prevention:
-
-The tool validates field names and types to prevent errors (e.g., auto-increment only for integer fields) and ensures that conflicting settings (like multiple primary keys) cannot be selected.
-
-Usage Scenario:
-
-Efficient Schema Design: Developers can use this tool to quickly draft the structure of their database tables without needing to manually write SQL statements.
-
-Learning & Prototyping: Ideal for beginners learning about database structure, as well as for professionals prototyping new database designs.
-
-How It Works:
-
-Field Name: Enter the name of your table field. The tool ensures that field names follow proper naming conventions (e.g., no spaces or special characters).
-
-Data Type: Choose the appropriate data type from the dropdown (e.g., integer, string, enum).
-
-Length/Value: Specify constraints like max length or enum values (comma-separated for enum).
-
-Nullable: Indicate whether the field can be nullable by checking the appropriate box.
-
-Index Type: Select if the field should be a primary_key, unique, or have no index.
-
-Auto Increment: For integer fields, choose whether the field should be auto_increment.
-
-Foreign Key: Optionally define foreign key relationships by providing the ForeignTable:ForeignColumn.
-
-Example Output:
-
-For a schema with fields like postId, postType, postDesc, and postedAt, the tool would generate the following JSON schema:
-
-json
-Copy
-Edit
-{
-  "postId": "integer|primary_key|auto_increment",
-  "postType": "enum|enum:a,b,c",
-  "postDesc": "string|max:250",
-  "postedAt": "timestamp|default:CURRENT_TIMESTAMP"
-}
-Benefits:
-
-Quick Database Design: Generates SQL-compatible schemas with minimal effort.
-
-Error-Free: Built-in validation ensures that the schema is free from common database design errors.
-
-Intuitive Interface: Provides a clean and simple interface that makes database design easy, even for novice users.
-
-Real-Time Feedback: The live schema preview helps catch issues early in the design process.
-
-
-
-
-
-
-
-
-
-
-
-CoreXPHP - Supercharge Your PHP Development
-🚀 Build Blazing-Fast Apps with CoreXPHP – A lightweight, high-performance MVC + PDO Framework that automates Models, Views, Controllers, Database & Routing from a simple JSON Schema.
-
-⚡ Why CoreXPHP?
-✅ Lightning-Fast – Optimized for speed with minimal overhead.
-✅ JSON-to-Code Automation – Just define your schema, and CoreXPHP generates the full stack.
-✅ MVC + PDO – Clean architecture with secure database interactions.
-✅ Flexible & Scalable – Perfect for small APIs or large enterprise apps.
-✅ Modern PHP Support – Built for PHP 8.0+ with strict typing and performance boosts.
-
-🔥 Core Features
-🚀 Automatic Code Generation
-🔹 Define your schema in JSON → Get Models, Views, Controllers, DB Migrations & Routes instantly.
-🔹 CoreXBuilder – Web-based GUI for rapid CRUD scaffolding.
-
-🛠️ Powerful ORM & Query Builder
-🔹 PDO-based (Secure & Fast)
-🔹 Fluent Query Builder for complex SQL without raw strings.
-🔹 Relationships (1:1, 1:M, M:M) with minimal configuration.
-
-🌐 Smart Routing System
-🔹 RESTful & Dynamic Routes
-🔹 Middleware Support (Auth, Logging, CORS, etc.)
-🔹 Route Caching for ultra-fast responses.
-
-📦 Built-in Templating Engine
-🔹 Simple, Fast & Extensible
-🔹 Layouts, Partials, and Components
-
-🔒 Security First
-🔹 CSRF Protection
-🔹 Input Validation & Sanitization
-🔹 JWT Authentication (Optional)
-
-⚙️ Developer Tools
-🔹 Environment Configs (.env support)
-CoreXBuilder 
-
-📦 Get Started in Seconds!
-1. Install via Composer
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -650,155 +503,179 @@ class Validator {
      ```php
  <?php
 
-/**
- * CoreXPHP QueryBuilder Class
- * 
- * This class helps build and execute SQL queries in an expressive, chainable style.
- */
 class QueryBuilder
 {
-    protected $db;             // PDO database connection
-    protected $query;          // Raw SQL query being built
-    protected $bindings = [];  // Bound parameters
-    protected $table;          // Current table
-    protected $whereAdded = false; // Flag to track WHERE clause
+    // === Core Properties ===
+    protected $db;
+    protected $table;
+    protected $query;
+    protected $bindings = [];
+    protected $wheres = [];
+    protected $order;
+    protected $limit;
+    protected $offset;
+    protected $joins = [];
+    protected $groups = [];
+    protected $havings = [];
+    protected $whereAdded = false;
+    protected $isPaginated = false;
+    protected $paginationMeta = null;
 
-    public function __construct()
+    // === Constructor ===
+    public function __construct($db = null, $table = null)
     {
-        $this->db = Database::getInstance()->getConnection();
+        $this->db = $db ?? Database::getInstance()->getConnection();
+        if ($table) {
+            $this->setTable($table);
+        }
     }
 
-    /**
-     * Create a new QueryBuilder for a specific table
-     */
+    // === Table Setup ===
     public static function table($table)
     {
         return (new self())->setTable($table);
     }
-
-    /**
-     * Set the table and default SELECT query
-     */
     public function setTable($table)
     {
         $this->table = $table;
-        $this->query = "SELECT * FROM " . $this->quoteIdentifier($table);
         return $this;
     }
 
-    /*================== CRUD ==================*/
-
-    public function insert($data)
+    // === Internal: Ensures proper WHERE handling in legacy raw SQL mode ===
+    protected function addWhereClause()
     {
-        $columns = implode(", ", array_map([$this, 'quoteIdentifier'], array_keys($data)));
-        $placeholders = ":" . implode(", :", array_keys($data));
-        $this->query = "INSERT INTO " . $this->quoteIdentifier($this->table) . " ($columns) VALUES ($placeholders)";
-        $this->bindings = $data;
-        return $this->execute();
+        if (!$this->query) return;
+        if (stripos($this->query, 'WHERE') === false) {
+            $this->query .= ' WHERE';
+        } else {
+            $this->query .= ' AND';
+        }
     }
 
-    public function update($data)
+    protected function getWhereClause()
     {
-        if (!$this->whereAdded) {
-            throw new Exception("Update operation requires a WHERE clause.");
+        if (!empty($this->wheres)) {
+            $this->whereAdded = true;
+            return " WHERE " . implode(' AND ', $this->wheres);
+        }
+        return "";
+    }
+      /*================== CRUD ==================*/
+
+      public function insert($data)
+      {
+          $columns = implode(", ", array_map([$this, 'quoteIdentifier'], array_keys($data)));
+          $placeholders = ":" . implode(", :", array_keys($data));
+          $this->query = "INSERT INTO " . $this->quoteIdentifier($this->table) . " ($columns) VALUES ($placeholders)";
+          $this->bindings = $data;
+          return $this->execute();
+      }
+  
+      public function update($data)
+      {
+
+          if (empty($this->wheres)) {
+            throw new Exception("Update/Delete operation requires a WHERE clause.");
+        }
+        
+          $set = [];
+          foreach ($data as $col => $val) {
+              $set[] = $this->quoteIdentifier($col) . " = :$col";
+              $this->bindings[$col] = $val;
+          }
+  
+          $this->query = "UPDATE " . $this->quoteIdentifier($this->table)
+                       . " SET " . implode(", ", $set)
+                       . " " . $this->getWhereClause();
+  
+          return $this->execute();
+      }
+  
+      public function delete()
+      {
+        if (empty($this->wheres)) {
+            throw new Exception("Update/Delete operation requires a WHERE clause.");
+        }
+        
+          $this->query = "DELETE FROM " . $this->quoteIdentifier($this->table) . " " . $this->getWhereClause();
+          return $this->execute();
+      }
+  
+      public function truncate()
+      {
+          $this->query = "TRUNCATE TABLE " . $this->quoteIdentifier($this->table);
+          return $this->execute();
+      }
+  
+      /*================== WHERE ==================*/
+
+    // === Join Clauses ===
+    public function join($table, $first, $operator, $second, $type = 'INNER')
+    {
+        $this->joins[] = strtoupper($type) . " JOIN `$table` ON `$first` $operator `$second`";
+        return $this;
+    }
+
+    // === Grouping and Having ===
+    public function groupBy($columns)
+    {
+        $columns = is_array($columns) ? $columns : [$columns];
+        $this->groups = array_map([$this, 'quoteIdentifier'], $columns);
+        return $this;
+    }
+
+    public function having($column, $operator, $value)
+    {
+        $key = $this->createBindingKey("having_$column");
+        $this->havings[] = "$column $operator :$key";
+        $this->bindings[$key] = $value;
+        return $this;
+    }
+
+    // === Where Clauses ===
+    public function where($column, $operator = null, $value = null)
+    {
+        if (is_callable($column)) {
+            $nested = new self($this->db, $this->table);
+            $column($nested);
+            if (!empty($nested->wheres)) {
+                $joined = implode(' ', $nested->wheres);
+                $joined = preg_replace('/^OR /', '', $joined); // Remove leading OR
+                $this->wheres[] = "($joined)";
+                $this->bindings = array_merge($this->bindings, $nested->bindings);
+            }
+            return $this;
         }
 
-        $set = [];
-        foreach ($data as $col => $val) {
-            $set[] = $this->quoteIdentifier($col) . " = :$col";
-            $this->bindings[$col] = $val;
+        if (func_num_args() === 2) {
+            $value = $operator;
+            $operator = '=';
         }
 
-        $this->query = "UPDATE " . $this->quoteIdentifier($this->table)
-                     . " SET " . implode(", ", $set)
-                     . " " . $this->getWhereClause();
-
-        return $this->execute();
+        $key = $this->createBindingKey($column);
+        $this->wheres[] = "`$column` $operator :$key";
+        $this->bindings[$key] = $value;
+        return $this;
     }
 
-    public function delete()
+    
+
+    public function orWhere($column, $operator = null, $value = null)
     {
-        if (!$this->whereAdded) {
-            throw new Exception("Delete operation requires a WHERE clause.");
+        if (func_num_args() === 2) {
+            $value = $operator;
+            $operator = '=';
         }
 
-        $this->query = "DELETE FROM " . $this->quoteIdentifier($this->table) . $this->getWhereClause();
-        return $this->execute();
-    }
-
-    public function truncate()
-    {
-        $this->query = "TRUNCATE TABLE " . $this->quoteIdentifier($this->table);
-        return $this->execute();
-    }
-
-    /*================== WHERE ==================*/
-
-    public function where($column, $operator, $value)
-    {
-        $this->addWhereClause();
-        $this->query .= " " . $this->quoteIdentifier($column) . " $operator :$column";
-        $this->bindings[$column] = $value;
-        return $this;
-    }
-
-    public function orWhere($column, $operator, $value)
-    {
-        $this->query .= $this->whereAdded ? " OR" : " WHERE";
-        $this->query .= " " . $this->quoteIdentifier($column) . " $operator :or_$column";
-        $this->bindings["or_$column"] = $value;
-        $this->whereAdded = true;
-        return $this;
-    }
-
-    public function whereIn($column, array $values)
-    {
-        $this->addWhereClause();
-        $placeholders = [];
-
-        foreach ($values as $i => $value) {
-            $key = "{$column}_in_$i";
-            $placeholders[] = ":$key";
-            $this->bindings[$key] = $value;
-        }
-
-        $this->query .= " " . $this->quoteIdentifier($column) . " IN (" . implode(", ", $placeholders) . ")";
-        return $this;
-    }
-
-    public function whereNotIn($column, array $values)
-    {
-        $this->addWhereClause();
-        $placeholders = [];
-
-        foreach ($values as $i => $value) {
-            $key = "{$column}_notin_$i";
-            $placeholders[] = ":$key";
-            $this->bindings[$key] = $value;
-        }
-
-        $this->query .= " " . $this->quoteIdentifier($column) . " NOT IN (" . implode(", ", $placeholders) . ")";
-        return $this;
-    }
-
-    public function whereNull($column)
-    {
-        $this->addWhereClause();
-        $this->query .= " " . $this->quoteIdentifier($column) . " IS NULL";
-        return $this;
-    }
-
-    public function whereNotNull($column)
-    {
-        $this->addWhereClause();
-        $this->query .= " " . $this->quoteIdentifier($column) . " IS NOT NULL";
+        $key = $this->createBindingKey("or_$column");
+        $this->wheres[] = "OR `$column` $operator :$key";
+        $this->bindings[$key] = $value;
         return $this;
     }
 
     public function whereBetween($column, $range)
     {
-        $this->addWhereClause();
-        $this->query .= " " . $this->quoteIdentifier($column) . " BETWEEN :start AND :end";
+        $this->wheres[] = "`$column` BETWEEN :start AND :end";
         $this->bindings['start'] = $range[0];
         $this->bindings['end'] = $range[1];
         return $this;
@@ -806,31 +683,56 @@ class QueryBuilder
 
     public function whereNotBetween($column, $range)
     {
-        $this->addWhereClause();
-        $this->query .= " " . $this->quoteIdentifier($column) . " NOT BETWEEN :start AND :end";
+        $this->wheres[] = "`$column` NOT BETWEEN :start AND :end";
         $this->bindings['start'] = $range[0];
         $this->bindings['end'] = $range[1];
         return $this;
     }
 
-    public function filter(array $conditions)
+    public function whereIn($column, array $values)
     {
-        foreach ($conditions as $column => $value) {
-            if (is_array($value)) {
-                $this->whereIn($column, $value);
-            } elseif ($value === 'NULL') {
-                $this->whereNull($column);
-            } elseif ($value === 'NOT NULL') {
-                $this->whereNotNull($column);
-            } else {
-                $this->where($column, '=', $value);
-            }
+        $placeholders = [];
+        foreach ($values as $i => $value) {
+            $key = $this->createBindingKey("{$column}_in_$i");
+            $placeholders[] = ":$key";
+            $this->bindings[$key] = $value;
         }
+        $this->wheres[] = "`$column` IN (" . implode(", ", $placeholders) . ")";
         return $this;
     }
 
-    /*================== FETCH ==================*/
+    public function whereNotIn($column, array $values)
+    {
+        $placeholders = [];
+        foreach ($values as $i => $value) {
+            $key = $this->createBindingKey("{$column}_notin_$i");
+            $placeholders[] = ":$key";
+            $this->bindings[$key] = $value;
+        }
+        $this->wheres[] = "`$column` NOT IN (" . implode(", ", $placeholders) . ")";
+        return $this;
+    }
 
+    public function whereNull($column)
+    {
+        $this->wheres[] = "`$column` IS NULL";
+        return $this;
+    }
+
+    public function whereNotNull($column)
+    {
+        $this->wheres[] = "`$column` IS NOT NULL";
+        return $this;
+    }
+
+    public function whereRaw($sql)
+    {
+        $this->addWhereClause();
+        $this->wheres[] = $sql;
+        return $this;
+    }
+
+    // === Select and Query ===
     public function select($columns = ['*'])
     {
         $quoted = array_map([$this, 'quoteIdentifier'], $columns);
@@ -838,15 +740,6 @@ class QueryBuilder
         return $this;
     }
 
-    public function get()
-    {
-        $stmt = $this->db->prepare($this->query);
-        foreach ($this->bindings as $key => $value) {
-            $stmt->bindValue(":$key", $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
-        }
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_OBJ);
-    }
 
     public function first()
     {
@@ -854,130 +747,192 @@ class QueryBuilder
         $results = $this->get();
         return $results[0] ?? null;
     }
+    
 
-    public function find($id, $primaryKey = 'id')
-    {
-        return $this->where($primaryKey, '=', $id)->first();
-    }
 
-    public function count($column = '*')
-    {
-        $originalQuery = $this->query;
-        $originalBindings = $this->bindings;
+    public function selectRaw($rawSql)
+{
+    $this->query = "SELECT $rawSql FROM " . $this->quoteIdentifier($this->table);
+    return $this;
+}
 
-        $this->query = "SELECT COUNT($column) AS count FROM " . $this->quoteIdentifier($this->table);
 
-        if (stripos($originalQuery, 'WHERE') !== false) {
-            $this->query .= " " . substr($originalQuery, stripos($originalQuery, 'WHERE'));
-        }
 
-        $result = $this->get();
-        $this->query = $originalQuery;
-        $this->bindings = $originalBindings;
-
-        return $result[0]->count ?? 0;
-    }
-
-    /*================== Aggregates ==================*/
-
-    public function sum($column)
-    {
-        return $this->aggregate("SUM", $column);
-    }
-
-    public function avg($column)
-    {
-        return $this->aggregate("AVG", $column);
-    }
-
-    public function min($column)
-    {
-        return $this->aggregate("MIN", $column);
-    }
-
-    public function max($column)
-    {
-        return $this->aggregate("MAX", $column);
-    }
-
-    protected function aggregate($function, $column)
-    {
-        $originalQuery = $this->query;
-        $this->query = "SELECT $function(" . $this->quoteIdentifier($column) . ") AS value FROM " . $this->quoteIdentifier($this->table);
-        return $this->get()[0]->value ?? 0;
-    }
-
-    /*================== Utilities ==================*/
-
+    // === Ordering, Limit, Offset ===
     public function orderBy($column, $direction = 'ASC')
     {
-        $this->query .= " ORDER BY " . $this->quoteIdentifier($column) . " " . strtoupper($direction);
+        $this->order = "ORDER BY `" . $column . "` " . strtoupper($direction);
         return $this;
     }
 
     public function limit($limit)
     {
-        $this->query .= " LIMIT :limit";
-        $this->bindings['limit'] = (int)$limit;
+        $this->limit = (int)$limit;
         return $this;
     }
 
     public function offset($offset)
     {
-        $this->query .= " OFFSET :offset";
-        $this->bindings['offset'] = (int)$offset;
+        $this->offset = (int)$offset;
         return $this;
     }
+
+    // === Execution ===
+    public function get()
+    {
+        $sql = $this->query ?: "SELECT * FROM " . $this->quoteIdentifier($this->table);
+
+        if (!empty($this->joins)) $sql .= ' ' . implode(' ', $this->joins);
+        if (!empty($this->wheres)) $sql .= " WHERE " . implode(' AND ', $this->wheres);
+        if (!empty($this->groups)) $sql .= " GROUP BY " . implode(', ', $this->groups);
+        if (!empty($this->havings)) $sql .= " HAVING " . implode(' AND ', $this->havings);
+        if (!empty($this->order)) $sql .= " " . $this->order;
+        if (isset($this->limit)) {
+            $sql .= " LIMIT :limit";
+            $this->bindings['limit'] = $this->limit;
+        }
+        if (isset($this->offset)) {
+            $sql .= " OFFSET :offset";
+            $this->bindings['offset'] = $this->offset;
+        }
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($this->bindings as $key => $val) {
+            $stmt->bindValue(":$key", $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+        $stmt->execute();
+
+        $results = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+        if ($this->isPaginated) {
+            return [
+                'data' => $results,
+                'meta' => $this->paginationMeta
+            ];
+        }
+
+        return $results;
+    }
+
+    public function count($column = '*')
+    {
+        $sql = "SELECT COUNT($column) AS aggregate FROM " . $this->quoteIdentifier($this->table);
+
+        if (!empty($this->wheres)) {
+            $sql .= " WHERE " . implode(' AND ', $this->wheres);
+        }
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($this->bindings as $key => $val) {
+            $stmt->bindValue(":$key", $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_OBJ);
+        return (int)($result->aggregate ?? 0);
+    }
+
+
+    public function sum($column)
+{
+    return $this->aggregate("SUM", $column);
+}
+
+public function avg($column)
+{
+    return $this->aggregate("AVG", $column);
+}
+
+public function min($column)
+{
+    return $this->aggregate("MIN", $column);
+}
+
+public function max($column)
+{
+    return $this->aggregate("MAX", $column);
+}
+
+protected function aggregate($function, $column)
+{
+    $sql = "SELECT $function(" . $this->quoteIdentifier($column) . ") AS value FROM " . $this->quoteIdentifier($this->table);
+
+    if (!empty($this->wheres)) {
+        $sql .= " WHERE " . implode(' AND ', $this->wheres);
+    }
+
+    $stmt = $this->db->prepare($sql);
+    foreach ($this->bindings as $key => $val) {
+        $stmt->bindValue(":$key", $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_OBJ);
+    return $result->value ?? 0;
+}
+
 
     public function paginate($page = 1, $perPage = 15)
     {
-        $offset = ($page - 1) * $perPage;
-        return $this->limit($perPage)->offset($offset);
-    }
+        $this->isPaginated = true;
 
-    public function toSql()
-    {
-        $sql = $this->query;
-        foreach ($this->bindings as $key => $val) {
-            $sql = str_replace(":$key", is_numeric($val) ? $val : "'$val'", $sql);
-        }
-        return $sql;
-    }
+        $total = $this->count();
+        $this->limit($perPage)->offset(($page - 1) * $perPage);
 
-    public function logQuery($file = '../app/logs/query.log')
-    {
-        if (!is_dir(dirname($file))) {
-            mkdir(dirname($file), 0777, true);
-        }
-        file_put_contents($file, "[" . date('Y-m-d H:i:s') . "] " . $this->toSql() . PHP_EOL, FILE_APPEND);
+        $this->paginationMeta = [
+            'total'       => $total,
+            'totalPages'  => ceil($total / $perPage),
+            'currentPage' => $page,
+            'perPage'     => $perPage,
+        ];
+
         return $this;
     }
 
-    /*================== Internals ==================*/
 
-    protected function addWhereClause()
-    {
-        if (!$this->whereAdded) {
-            $this->query .= " WHERE";
-            $this->whereAdded = true;
-        } else {
-            $this->query .= " AND";
-        }
+    // === Helper Methods ===
+
+// === Debugging Helpers ===
+public function toSql()
+{
+    $sql = $this->query ?: "SELECT * FROM " . $this->quoteIdentifier($this->table);
+
+    if (!empty($this->joins)) $sql .= ' ' . implode(' ', $this->joins);
+    if (!empty($this->wheres)) $sql .= " WHERE " . implode(' AND ', $this->wheres);
+    if (!empty($this->groups)) $sql .= " GROUP BY " . implode(', ', $this->groups);
+    if (!empty($this->havings)) $sql .= " HAVING " . implode(' AND ', $this->havings);
+    if (!empty($this->order)) $sql .= " " . $this->order;
+    if (isset($this->limit)) $sql .= " LIMIT " . $this->limit;
+    if (isset($this->offset)) $sql .= " OFFSET " . $this->offset;
+
+    foreach ($this->bindings as $key => $val) {
+        $val = is_numeric($val) ? $val : "'$val'";
+        $sql = str_replace(":$key", $val, $sql);
     }
 
-    protected function getWhereClause()
-    {
-        $pos = strpos($this->query, 'WHERE');
-        return $pos !== false ? substr($this->query, $pos) : '';
+    return $sql;
+}
+
+public function logQuery($file = '../logs/query.log')
+{
+    $sql = $this->toSql();
+    if (!is_dir(dirname($file))) {
+        mkdir(dirname($file), 0777, true);
     }
+    file_put_contents($file, "[" . date('Y-m-d H:i:s') . "] " . $sql . PHP_EOL, FILE_APPEND);
+    return $this;
+}
+
+
 
     protected function quoteIdentifier($identifier)
     {
         $parts = explode('.', $identifier);
-        foreach ($parts as &$part) {
-            $part = "`" . str_replace("`", "``", $part) . "`";
-        }
-        return implode('.', $parts);
+        return implode('.', array_map(fn($part) => "`$part`", $parts));
+    }
+
+    protected function createBindingKey($base)
+    {
+        return preg_replace('/[^a-zA-Z0-9_]/', '_', $base) . '_' . count($this->bindings);
     }
 
     public function execute()
@@ -989,118 +944,7 @@ class QueryBuilder
         return $stmt->execute();
     }
 }
-
-
-     9. **app/core/Paginator.php**
-   - Handles pagination, providing calculations for offsets and generating pagination links.
-   - Code Example:
-     ```php
- <?php
-class Paginator
-{
-    private $totalRecords;
-    private $currentPage;
-    private $perPage;
-    private $totalPages;
-
-    public function __construct($totalRecords, $currentPage = 1, $perPage = 10)
-    {
-        $this->totalRecords = $totalRecords;
-        $this->currentPage = $currentPage;
-        $this->perPage = $perPage;
-        $this->totalPages = ceil($totalRecords / $perPage);
-    }
-
-    public function getOffset()
-    {
-        return ($this->currentPage - 1) * $this->perPage;
-    }
-
-    public function getLimit()
-    {
-        return $this->perPage;
-    }
-
-    public function getTotalPages()
-    {
-        return $this->totalPages;
-    }
-
-    public function getCurrentPage()
-    {
-        return $this->currentPage;
-    }
-
-    public function getPaginationData()
-    {
-        return [
-            'total_records' => $this->totalRecords,
-            'current_page' => $this->currentPage,
-            'per_page' => $this->perPage,
-            'total_pages' => $this->totalPages,
-        ];
-    }
-
-    public function getPageUrl($page)
-    {
-        $url = $_SERVER['REQUEST_URI'];
-        $query = parse_url($url, PHP_URL_QUERY);
-
-        // Remove existing page parameters from the URL
-        $url = preg_replace('/&?page=\d+/', '', $url);
-
-        // Append the new page parameter to the URL
-        if ($query) {
-            $url .= '&page=' . $page;
-        } else {
-            $url .= '?page=' . $page;
-        }
-        return $url;
-    }
-
-    public function render()
-    {
-        $html = '<ul class="pagination">';
-        
-        // Previous button
-        $html .= '<li class="page-item' . ($this->currentPage == 1 ? ' disabled' : '') . '"><a class="page-link" href="' . $this->getPageUrl($this->currentPage - 1) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
-        
-        // First page
-        if ($this->totalPages > 1) {
-            $html .= '<li class="page-item' . ($this->currentPage == 1 ? ' active' : '') . '"><a class="page-link" href="' . $this->getPageUrl(1) . '">First Page</a></li>';
-        }
-        
-        // Pages in between
-        $startPage = max($this->currentPage - 3, 1);
-        $endPage = min($this->currentPage + 3, $this->totalPages);
-        for ($i = $startPage; $i <= $endPage; $i++) {
-            $html .= '<li class="page-item' . ($this->currentPage == $i ? ' active' : '') . '"><a class="page-link" href="' . $this->getPageUrl($i) . '">' . $i . '</a></li>';
-        }
-        
-        // Last page
-        if ($this->totalPages > 1) {
-            $html .= '<li class="page-item' . ($this->currentPage == $this->totalPages ? ' active' : '') . '"><a class="page-link" href="' . $this->getPageUrl($this->totalPages) . '">Last Page</a></li>';
-        }
-        
-        // Next button
-        $html .= '<li class="page-item' . ($this->currentPage == $this->totalPages ? ' disabled' : '') . '"><a class="page-link" href="' . $this->getPageUrl($this->currentPage + 1) . '" aria-label="Next"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>';
-        
-        // Page number input field
-        $html .= '<li class="page-item"><form class="form-inline" style="display:flex;margin-top: -0.5rem;">
-        <input type="text" class="pagination-search" name="page" placeholder="Page" value="' . $this->currentPage . '">
-        <button type="submit" class="pagination-search-button">Go</button></form></li>';
-        
-        $html .= '</ul>';
-    
-        return $html;
-    }
-}
-?>
-
-     ```
-   - Explanation:
-     - `getOffset()` calculates the offset used in SQL LIMIT queries.
-     - `render()` generates HTML links for navigating between pages.
+ 
 
 10. **app/init.php**
     - Loads environment variables and defines constants for application configuration.
@@ -1181,7 +1025,6 @@ class Paginator
 
 
 <?php
-<?php
 
 /**
  * CoreXPHP Base Model Class
@@ -1212,6 +1055,62 @@ class Model
 
         $this->query = QueryBuilder::table($this->table);
     }
+
+    public function findAll(array $options = [])
+{
+    $this->prepareFields();
+    $query = QueryBuilder::table($this->table);
+
+    // Filters
+    if (!empty($options['filters'])) {
+        foreach ($options['filters'] as $column => $value) {
+            if (in_array($column, $this->columns)) {
+                $query->where($column, '=', $value);
+            }
+        }
+    }
+
+    // Search
+    if (!empty($options['search'])) {
+        $term = $options['search']['term'] ?? '';
+        $columns = $options['search']['columns'] ?? [];
+
+        if (!empty($term) && !empty($columns)) {
+            $query->where(function ($q) use ($term, $columns) {
+                foreach ($columns as $i => $column) {
+                    $i === 0
+                        ? $q->where($column, 'LIKE', "%$term%")
+                        : $q->orWhere($column, 'LIKE', "%$term%");
+                }
+            });
+        }
+    }
+
+    // Sorting
+    if (!empty($options['sort'])) {
+        $query->orderBy(
+            $options['sort']['column'],
+            $options['sort']['direction'] ?? 'asc'
+        );
+    }
+
+    // Pagination — just return builder with paginate called
+    if (!empty($options['pagination']) && $options['pagination']['enabled']) {
+        $page = max(1, (int)($options['pagination']['page'] ?? 1));
+        $perPage = max(1, (int)($options['pagination']['perPage'] ?? 10));
+        $query->paginate($page, $perPage);
+    }
+
+    return $query; // Always return builder
+}
+
+    
+        // Forward the whereRaw call to the QueryBuilder instance
+        public function whereRaw($sql)
+        {
+            $this->query->whereRaw($sql);
+            return $this;
+        }
 
     // --- Prepare Fields ---
 
@@ -1283,9 +1182,17 @@ class Model
     public function update($data, $id)
     {
         $data = array_intersect_key($data, array_flip(array_diff($this->prepareFields(), $this->guarded)));
+    
+        // Ensure $this->query is initialized
+        if (!$this->query) {
+            $this->query = QueryBuilder::table($this->table);
+        }
+    
         return $this->query->where($this->primaryKey, '=', $id)->update($data);
     }
-
+    
+    
+    
     public function delete($id)
     {
         return $this->query->where($this->primaryKey, '=', $id)->delete();
@@ -1293,9 +1200,11 @@ class Model
 
     public function truncate()
     {
-        return $this->db->exec("TRUNCATE TABLE {$this->table}");
+        $this->db->exec("SET FOREIGN_KEY_CHECKS=0");
+        $this->db->exec("TRUNCATE TABLE {$this->table}");
+        $this->db->exec("SET FOREIGN_KEY_CHECKS=1");
+        return true;
     }
-
     public function save()
     {
         if (isset($this->attributes[$this->primaryKey])) {
@@ -1322,6 +1231,7 @@ class Model
         }
         return $this;
     }
+    
 
     public function search($term, $columns)
     {
@@ -1379,54 +1289,7 @@ class Model
         return $models;
     }
 
-    public function findAll(array $options = [])
-    {
-        $this->prepareFields();
-    
-        // Apply filters
-        if (isset($options['filters']) && is_array($options['filters'])) {
-            foreach ($options['filters'] as $column => $value) {
-                if (in_array($column, $this->columns)) {
-                    $this->where($column, '=', $value);
-                }
-            }
-        }
-    
-        // Apply search
-        if (isset($options['search']) && is_array($options['search'])) {
-            $term = $options['search']['term'] ?? null;
-            $columns = $options['search']['columns'] ?? $this->filters;
-    
-            if ($term) {
-                $this->where(function ($query) use ($term, $columns) {
-                    foreach ($columns as $column) {
-                        if (in_array($column, $this->columns)) {
-                            $query->orWhere($column, 'LIKE', '%' . $term . '%');
-                        }
-                    }
-                });
-            }
-        }
-    
-        // Apply sort
-        if (isset($options['sort']) && isset($options['sort']['column'])) {
-            $direction = $options['sort']['direction'] ?? 'asc';
-            $this->orderBy($options['sort']['column'], $direction);
-        }
-    
-        // Apply pagination
-        if (isset($options['pagination']) && $options['pagination']['enabled']) {
-            $page = $options['pagination']['page'] ?? 1;
-            $perPage = $options['pagination']['perPage'] ?? 10;
-    
-            // 🔥 Instead of just setting limit/offset, directly call paginate()
-            return $this->paginate($page, $perPage);
-        }
-    
-        // If pagination not enabled, return the builder (normal)
-        return $this;
-    }
-    
+
 
     public function first()
     {
@@ -1441,11 +1304,17 @@ class Model
         return $model;
     }
 
-    public function where($column, $operator, $value)
+    public function where($column, $operator = null, $value = null)
     {
+        if (is_callable($column)) {
+            $this->query->where($column); // pass closure directly to QueryBuilder
+            return $this;
+        }
+    
         $this->query->where($column, $operator, $value);
         return $this;
     }
+    
 
     public function whereIn($column, $values)
     {

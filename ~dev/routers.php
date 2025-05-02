@@ -1204,3 +1204,21 @@ $app->router->get('/product/{productIdentify}/destroy', [ProductController::clas
 $app->router->get('/product/{productIdentify}/modify', [ProductController::class, 'productModify']);
 $app->router->post('/product/{productIdentify}/modify', [ProductController::class, 'productEdit']);
 $app->router->get('/product/{productIdentify}', [ProductController::class, 'productDisplay']);
+
+// product of routes
+$app->router->get('/product', [ProductController::class, 'productIndex']);
+$app->router->get('/product/build', [ProductController::class, 'productBuild']);
+$app->router->post('/product/build', [ProductController::class, 'productRecord']);
+$app->router->get('/product/{productIdentify}/destroy', [ProductController::class, 'productDestroy']);
+$app->router->get('/product/{productIdentify}/modify', [ProductController::class, 'productModify']);
+$app->router->post('/product/{productIdentify}/modify', [ProductController::class, 'productEdit']);
+$app->router->get('/product/{productIdentify}', [ProductController::class, 'productDisplay']);
+
+// product of routes
+$app->router->get('/product', [ProductController::class, 'productIndex']);
+$app->router->get('/product/build', [ProductController::class, 'productBuild']);
+$app->router->post('/product/build', [ProductController::class, 'productRecord']);
+$app->router->get('/product/{productIdentify}/destroy', [ProductController::class, 'productDestroy']);
+$app->router->get('/product/{productIdentify}/modify', [ProductController::class, 'productModify']);
+$app->router->post('/product/{productIdentify}/modify', [ProductController::class, 'productEdit']);
+$app->router->get('/product/{productIdentify}', [ProductController::class, 'productDisplay']);

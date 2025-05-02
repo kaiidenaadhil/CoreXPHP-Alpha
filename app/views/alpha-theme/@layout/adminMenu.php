@@ -1,5 +1,4 @@
 <?php return array (
-  
   'eventCategories' => 
   array (
     'label' => 'Event Categories',
@@ -15,10 +14,14 @@
     'label' => 'Services',
     'icon' => 'uil-wrench',
   ),
-
   'media' => 
   array (
     'label' => 'Media',
+    'icon' => 'uil-file',
+  ),
+  'product' => 
+  array (
+    'label' => 'Product',
     'icon' => 'uil-file',
   ),
 );

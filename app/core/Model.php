@@ -31,60 +31,60 @@ class Model
     }
 
     public function findAll(array $options = [])
-{
-    $this->prepareFields();
-    $query = QueryBuilder::table($this->table);
+    {
+        $this->prepareFields();
+        $query = QueryBuilder::table($this->table);
 
-    // Filters
-    if (!empty($options['filters'])) {
-        foreach ($options['filters'] as $column => $value) {
-            if (in_array($column, $this->columns)) {
-                $query->where($column, '=', $value);
+        // Filters
+        if (!empty($options['filters'])) {
+            foreach ($options['filters'] as $column => $value) {
+                if (in_array($column, $this->columns)) {
+                    $query->where($column, '=', $value);
+                }
             }
         }
-    }
 
-    // Search
-    if (!empty($options['search'])) {
-        $term = $options['search']['term'] ?? '';
-        $columns = $options['search']['columns'] ?? [];
+        // Search
+        if (!empty($options['search'])) {
+            $term = $options['search']['term'] ?? '';
+            $columns = $options['search']['columns'] ?? [];
 
-        if (!empty($term) && !empty($columns)) {
-            $query->where(function ($q) use ($term, $columns) {
-                foreach ($columns as $i => $column) {
-                    $i === 0
-                        ? $q->where($column, 'LIKE', "%$term%")
-                        : $q->orWhere($column, 'LIKE', "%$term%");
-                }
-            });
+            if (!empty($term) && !empty($columns)) {
+                $query->where(function ($q) use ($term, $columns) {
+                    foreach ($columns as $i => $column) {
+                        $i === 0
+                            ? $q->where($column, 'LIKE', "%$term%")
+                            : $q->orWhere($column, 'LIKE', "%$term%");
+                    }
+                });
+            }
         }
-    }
 
-    // Sorting
-    if (!empty($options['sort'])) {
-        $query->orderBy(
-            $options['sort']['column'],
-            $options['sort']['direction'] ?? 'asc'
-        );
-    }
-
-    // Pagination — just return builder with paginate called
-    if (!empty($options['pagination']) && $options['pagination']['enabled']) {
-        $page = max(1, (int)($options['pagination']['page'] ?? 1));
-        $perPage = max(1, (int)($options['pagination']['perPage'] ?? 10));
-        $query->paginate($page, $perPage);
-    }
-
-    return $query; // Always return builder
-}
-
-    
-        // Forward the whereRaw call to the QueryBuilder instance
-        public function whereRaw($sql)
-        {
-            $this->query->whereRaw($sql);
-            return $this;
+        // Sorting
+        if (!empty($options['sort'])) {
+            $query->orderBy(
+                $options['sort']['column'],
+                $options['sort']['direction'] ?? 'asc'
+            );
         }
+
+        // Pagination — just return builder with paginate called
+        if (!empty($options['pagination']) && $options['pagination']['enabled']) {
+            $page = max(1, (int)($options['pagination']['page'] ?? 1));
+            $perPage = max(1, (int)($options['pagination']['perPage'] ?? 10));
+            $query->paginate($page, $perPage);
+        }
+
+        return $query; // Always return builder
+    }
+
+
+    // Forward the whereRaw call to the QueryBuilder instance
+    public function whereRaw($sql)
+    {
+        $this->query->whereRaw($sql);
+        return $this;
+    }
 
     // --- Prepare Fields ---
 
@@ -156,17 +156,17 @@ class Model
     public function update($data, $id)
     {
         $data = array_intersect_key($data, array_flip(array_diff($this->prepareFields(), $this->guarded)));
-    
+
         // Ensure $this->query is initialized
         if (!$this->query) {
             $this->query = QueryBuilder::table($this->table);
         }
-    
+
         return $this->query->where($this->primaryKey, '=', $id)->update($data);
     }
-    
-    
-    
+
+
+
     public function delete($id)
     {
         return $this->query->where($this->primaryKey, '=', $id)->delete();
@@ -205,7 +205,7 @@ class Model
         }
         return $this;
     }
-    
+
 
     public function search($term, $columns)
     {
@@ -266,7 +266,7 @@ class Model
     // public function findAll(array $options = [])
     // {
     //     $this->prepareFields(); // Ensure fields are prepared before anything else
-        
+
     //     // Apply filters
     //     if (isset($options['filters']) && is_array($options['filters'])) {
     //         foreach ($options['filters'] as $column => $value) {
@@ -276,12 +276,12 @@ class Model
     //             }
     //         }
     //     }
-        
+
     //     // Apply search
     //     if (isset($options['search']) && is_array($options['search'])) {
     //         $term = $options['search']['term'] ?? null;
     //         $columns = $options['search']['columns'] ?? $this->filters;
-    
+
     //         if ($term) {
     //             // Prepare search conditions as raw SQL
     //             $searchConditions = [];
@@ -291,34 +291,34 @@ class Model
     //                     $searchConditions[] = "{$column} LIKE '%" . $term . "%'";
     //                 }
     //             }
-    
+
     //             // If there are conditions, join them with OR and apply raw where
     //             if (!empty($searchConditions)) {
     //                 $this->whereRaw(implode(' OR ', $searchConditions));
     //             }
     //         }
     //     }
-    
+
     //     // Apply sort
     //     if (isset($options['sort']) && isset($options['sort']['column'])) {
     //         $direction = $options['sort']['direction'] ?? 'desc';
     //         $this->orderBy($options['sort']['column'], $direction);
     //     }
-    
+
     //     // Apply pagination last to ensure it's applied after all conditions
     //     if (isset($options['pagination']) && $options['pagination']['enabled']) {
     //         $page = $options['pagination']['page'] ?? 1;
     //         $perPage = $options['pagination']['perPage'] ?? 10;
-    
+
     //         // Ensure pagination is applied last so it's based on the final query
     //         return $this->paginate($page, $perPage);  // Pagination method call
     //     }
-        
+
     //     // If pagination not enabled, return the builder (normal query)
     //     return $this;
     // }
-    
-    
+
+
 
     public function first()
     {
@@ -339,11 +339,16 @@ class Model
             $this->query->where($column); // pass closure directly to QueryBuilder
             return $this;
         }
-    
+
         $this->query->where($column, $operator, $value);
         return $this;
     }
-    
+    public function orWhere($column, $operator = null, $value = null)
+    {
+        $this->query->orWhere($column, $operator, $value);
+        return $this;
+    }
+
 
     public function whereIn($column, $values)
     {
@@ -395,6 +400,26 @@ class Model
     }
 
     // --- Helper Methods ---
+
+
+ public function validate(?array $data = null): array
+{
+    $data = $data ?? $_POST;
+
+    if (!property_exists($this, 'validationRules') || empty($this->validationRules)) {
+        return [];
+    }
+
+    $validator = new Validator();
+    $validator->rules($this->validationRules);
+    $validator->validate($data);
+
+    return $validator->fails()
+        ? $validator->errors()
+        : [];
+}
+
+
 
     public function toArray(): array
     {
