@@ -4,12 +4,41 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $success = $this->model('LeadModel')->update([
-            'status' => 'converted',
-            'phone' => '01999999999'
-        ], 17); // Update leadId 1
+        // $model = $this->model('LeadModel')
+        // ->where('email','aminul@exalfmple.com')->delete();
+
+            //    // 1. Find by ID (primary key)
+            //    $foundById = $this->model('LeadModel')->find(5);
+            //    if ($foundById) {
+            //        echo "Found by ID: " . $foundById->name . "<br>";
+            //    }
+
+        // // 2. Find by email (custom column)
+        // $foundByEmail = $this->model('LeadModel')->find()->where('email','aminul@this.com')->get();
+        // if ($foundByEmail) {
+        //     echo "Found by Email: " . $foundByEmail->name . "<br>";
+        // }
+
+        // // 5. Delete by ID
+        // $deleteById = $this->model('LeadModel')->delete(18);
+        // echo $deleteById ? "Deleted by ID<br>" : "Delete by ID failed<br>";
+
+        // // 6. Delete by email
+        // $deleteByEmail = $this->model('LeadModel')->where('email', 'aminul@example.com')->delete();
+        // echo $deleteByEmail ? "Deleted by Email<br>" : "Delete by Email failed<br>";
     
-        echo $success ? "✅ Lead updated." : "❌ Update failed.";
+
+                // --------- ✅ UPDATE TESTS ---------
+
+        // // 3. Update by ID
+        // $updateById = $this->model('LeadModel')->update(['status' => 'converted'], 9);
+        // echo $updateById ? "Updated by ID<br>" : "Update by ID failed<br>";
+
+        // // 4. Update by email
+        $updateByEmail = $this->model('LeadModel')->where('email', 'gal@lead.com')->update(['status' => 'new']);
+        echo $updateByEmail ? "Updated by Email<br>" : "Update by Email failed<br>";
+
+
     }
 
 

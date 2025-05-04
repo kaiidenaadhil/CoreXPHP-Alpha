@@ -61,33 +61,44 @@ class QueryBuilder
         if (empty($this->wheres)) {
             throw new Exception("Update/Delete operation requires a WHERE clause.");
         }
+    
+        // Prepare SET clause from the data
         $set = [];
         foreach ($data as $col => $val) {
             $set[] = $this->quoteIdentifier($col) . " = :$col";
-            $this->bindings[$col] = $val;
+            $this->bindings[$col] = $val; // Bind each value to the query
         }
+    
+        // Build the SQL query
         $this->query = "UPDATE " . $this->quoteIdentifier($this->table)
             . " SET " . implode(", ", $set)
-            . " WHERE " . implode(' AND ', $this->wheres);
-        return $this->execute();
+            . " WHERE " . implode(' AND ', $this->wheres); // Use AND for all where conditions
+    
+        // Execute the query and return the result (true or false)
+        return $this->execute(); // execute() returns a boolean
     }
-
+    
+    
     public function delete()
     {
         if (empty($this->wheres)) {
             throw new Exception("Update/Delete operation requires a WHERE clause.");
         }
-        $this->query = "DELETE FROM " . $this->quoteIdentifier($this->table) . " WHERE " . implode(' AND ', $this->wheres);
-        return $this->execute();
+    
+        // Build the DELETE query
+        $this->query = "DELETE FROM " . $this->quoteIdentifier($this->table) 
+            . " WHERE " . implode(' AND ', $this->wheres); // Use AND for all where conditions
+    
+        return $this->execute(); // Execute the query
     }
+    
+    
 
     public function truncate()
     {
         $this->query = "TRUNCATE TABLE " . $this->quoteIdentifier($this->table);
         return $this->execute();
     }
-
-    // === WHERE Methods (including extended filters) ===
 
     public function where($column, $operator = null, $value = null)
     {
@@ -96,37 +107,46 @@ class QueryBuilder
             $column($nested);
             if (!empty($nested->wheres)) {
                 $joined = implode(' ', $nested->wheres);
-                $joined = preg_replace('/^OR /', '', $joined);
                 $this->wheres[] = "($joined)";
                 $this->bindings = array_merge($this->bindings, $nested->bindings);
             }
             return $this;
         }
     
-        if (func_num_args() === 2) {
+        // 🛠 FIXED: Detect shorthand form where('column', 'value') ➜ assume '='
+        if ($value === null) {
             $value = $operator;
             $operator = '=';
         }
     
         $key = $this->createBindingKey($column);
+    
+        // ✅ FIXED: Ensure correct SQL syntax with binding
         $this->wheres[] = $this->quoteIdentifier($column) . " $operator :$key";
         $this->bindings[$key] = $value;
+    
         return $this;
     }
     
-    public function orWhere($column, $operator = null, $value = null)
-    {
-        if (func_num_args() === 2) {
-            $value = $operator;
-            $operator = '=';
-        }
     
-        $key = $this->createBindingKey("or_$column");
-        $this->wheres[] = "OR " . $this->quoteIdentifier($column) . " $operator :$key";
-        $this->bindings[$key] = $value;
-        return $this;
+
+public function orWhere($column, $operator = null, $value = null)
+{
+    if (func_num_args() === 2) {
+        // Default to equality if operator is not provided
+        $value = $operator;
+        $operator = '=';
     }
-    
+
+    // Create a unique key for binding
+    $key = $this->createBindingKey("or_$column");
+    $this->wheres[] = "OR " . $this->quoteIdentifier($column) . " $operator :$key";
+    $this->bindings[$key] = $value;
+
+    return $this; // Return instance for chaining
+}
+
+
     public function whereIn($column, array $values)
     {
         if (empty($values)) {
@@ -191,6 +211,12 @@ class QueryBuilder
         $this->wheres[] = $sql;
         return $this;
     }
+
+    public function hasWhere()
+{
+    return !empty($this->wheres);
+}
+
 
     // === Other Selectors ===
 
@@ -377,10 +403,11 @@ class QueryBuilder
         if (isset($this->limit)) $sql .= " LIMIT " . $this->limit;
         if (isset($this->offset)) $sql .= " OFFSET " . $this->offset;
 
-        foreach ($this->bindings as $key => $val) {
-            $val = is_numeric($val) ? $val : "'$val'";
-            $sql = str_replace(":$key", $val, $sql);
-        }
+        // foreach ($this->bindings as $key => $val) {
+
+        //     $val = is_numeric($val) ? $val : "'$val'";
+        //     $sql = str_replace(":$key", $val, $sql);
+        // }
 
         return $sql;
     }
@@ -406,14 +433,28 @@ class QueryBuilder
         return preg_replace('/[^a-zA-Z0-9_]/', '_', $base) . '_' . count($this->bindings);
     }
 
-    public function execute()
-    {
-        $stmt = $this->db->prepare($this->query);
-        foreach ($this->bindings as $key => $val) {
-            $stmt->bindValue(":$key", $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
-        }
-        return $stmt->execute();
+public function execute()
+{
+    // Log the final SQL and bindings for debugging
+    $log = "[" . date('Y-m-d H:i:s') . "]\n";
+    $log .= "QUERY: " . $this->query . "\n";
+    $log .= "BINDINGS: " . print_r($this->bindings, true) . "\n";
+
+    $logFile = __DIR__ . '/../logs/query_debug.log';
+    if (!is_dir(dirname($logFile))) {
+        mkdir(dirname($logFile), 0777, true);
     }
+    file_put_contents($logFile, $log . "\n", FILE_APPEND);
+
+    // Prepare and bind the statement
+    $stmt = $this->db->prepare($this->query);
+    foreach ($this->bindings as $key => $val) {
+        $stmt->bindValue(":$key", $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+
+    return $stmt->execute();
+}
+
 
 // End of class
 }

@@ -161,3 +161,138 @@ CRUD,update,"$model->update([...], 52);"
 CRUD,delete,$model->delete(52);
 CRUD,truncate,$model->truncate();
 CRUD,save,$model->fill([...])->save();
+
+
+✅ MODEL CLASS — Supported Methods & Features
+🔍 Query Methods
+find($id) → Find by primary key.
+
+find()->where(...)->first() → Find by custom column.
+
+findAll(array $options) → Filtered, sorted, paginated query builder.
+
+all() → Get all records (no filters).
+
+first() → Return first matched record.
+
+get() → Return all matched records.
+
+✏️ Modification (CRUD)
+create($data) → Insert new record.
+
+update($data, $id = null) → Update by ID or where condition.
+
+delete($id = null) → Delete by ID or where condition.
+
+truncate() → Clear all data.
+
+save() → Auto-create or update based on primary key in $attributes.
+
+🧠 Conditions (Wrappers for QueryBuilder)
+where($column, $operator, $value)
+
+orWhere($column, $operator, $value)
+
+whereIn($column, $values)
+
+whereNull($column)
+
+whereNotNull($column)
+
+whereRaw($sql)
+
+🧰 Utilities
+select($columns)
+
+orderBy($column, $direction)
+
+limit($n)
+
+offset($n)
+
+paginate($page, $perPage)
+
+count()
+
+toSql() → SQL string
+
+logQuery() → Log SQL to file
+
+validate($data) → Run validation rules
+
+fill($data) → Fill attributes
+
+toArray() / toJson() → Serialization
+
+🔗 Relationships
+hasOne()
+
+hasMany()
+
+belongsTo()
+
+belongsToMany()
+
+morphMany()
+
+morphTo()
+
+✅ QUERYBUILDER CLASS — Supported Features
+🔍 Conditions
+where(), orWhere()
+
+whereIn(), whereNotIn()
+
+whereBetween(), whereNotBetween()
+
+whereNull(), whereNotNull()
+
+whereRaw()
+
+🔢 Aggregates
+count()
+
+sum($column)
+
+avg($column)
+
+min($column)
+
+max($column)
+
+🔄 CRUD
+insert($data)
+
+update($data) → With where clause
+
+delete() → With where clause
+
+truncate()
+
+📊 Selection & Fetching
+select($columns)
+
+selectRaw($sql)
+
+first()
+
+get()
+
+toSql()
+
+logQuery()
+
+🧭 Pagination
+paginate($page, $perPage)
+
+limit($n)
+
+offset($n)
+
+🧩 Joins & Groups
+join() (supports types)
+
+groupBy()
+
+having()
+

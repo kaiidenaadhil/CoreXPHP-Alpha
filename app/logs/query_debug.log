@@ -1,0 +1,106 @@
+[2025-05-04 01:52:32]
+QUERY: DELETE FROM `leads` WHERE `email` jennifer@lead.com :email_0
+BINDINGS: Array
+(
+    [email_0] => 
+)
+
+
+[2025-05-04 01:54:09]
+QUERY: DELETE FROM `leads` WHERE `email` jennifer@lead.com :email_0
+BINDINGS: Array
+(
+    [email_0] => 
+)
+
+
+[2025-05-04 01:56:17]
+QUERY: DELETE FROM `leads` WHERE `email` jennifer@lead.com :email_0
+BINDINGS: Array
+(
+    [email_0] => 
+)
+
+
+[2025-05-04 01:57:57]
+QUERY: DELETE FROM `leads` WHERE `email` jennifer@lead.com :email_0
+BINDINGS: Array
+(
+    [email_0] => 
+)
+
+
+[2025-05-04 01:58:15]
+QUERY: DELETE FROM `leads` WHERE `email` jennifer@lead.com :email_0
+BINDINGS: Array
+(
+    [email_0] => 
+)
+
+
+[2025-05-04 01:59:49]
+QUERY: DELETE FROM `leads` WHERE `email` jennifer@lead.com :email_0
+BINDINGS: Array
+(
+    [email_0] => 
+)
+
+
+[2025-05-04 02:00:25]
+QUERY: DELETE FROM `leads` WHERE `email` = :email_0
+BINDINGS: Array
+(
+    [email_0] => jennifer@lead.com
+)
+
+
+[2025-05-04 02:02:21]
+QUERY: DELETE FROM `leads` WHERE `email` aminul@exalfmple.com :email_0
+BINDINGS: Array
+(
+    [email_0] => 
+)
+
+
+[2025-05-04 02:04:02]
+QUERY: DELETE FROM `leads` WHERE `email` = :email_0
+BINDINGS: Array
+(
+    [email_0] => aminul@exalfmple.com
+)
+
+
+[2025-05-04 02:14:36]
+QUERY: DELETE FROM `leads` WHERE `leadId` = :leadId_0
+BINDINGS: Array
+(
+    [leadId_0] => 18
+)
+
+
+[2025-05-04 02:15:26]
+QUERY: DELETE FROM `leads` WHERE `email` = :email_0
+BINDINGS: Array
+(
+    [email_0] => aminul@example.com
+)
+
+
+[2025-05-04 02:23:59]
+QUERY: UPDATE `leads` SET `status` = :status WHERE `leadId` = :leadId_0
+BINDINGS: Array
+(
+    [leadId_0] => 9
+    [status] => converted
+)
+
+
+[2025-05-04 02:25:12]
+QUERY: UPDATE `leads` SET `status` = :status WHERE `email` = :email_0
+BINDINGS: Array
+(
+    [email_0] => gal@lead.com
+    [status] => new
+)
+
+

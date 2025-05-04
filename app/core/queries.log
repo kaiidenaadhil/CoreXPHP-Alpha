@@ -1,0 +1,2 @@
+SELECT * FROM `leads` WHERE `email` jennifer@lead.com :email_0
+SELECT * FROM `leads` WHERE `email` jennifer@lead.com :email_0

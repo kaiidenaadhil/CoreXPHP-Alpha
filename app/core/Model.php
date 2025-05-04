@@ -140,37 +140,56 @@ class Model
         return $this->query->insert($data);
     }
 
-    public function find($id)
+    public function find($key = null, $column = null)
     {
-        $row = QueryBuilder::table($this->table)->where($this->primaryKey, '=', $id)->first();
+        if ($key !== null) {
+            $column = $column ?? $this->primaryKey;
+            $this->query->where($column, '=', $key);
+            $row = $this->query->first();
+            if (!$row) return null;
+            $model = new static();
+            $model->fill(get_object_vars($row));
+            return $model;
+        }
+        return $this; // allows chaining with where()
+    }
+    public function update($data, $key = null, $column = null)
+    {
+        $this->prepareFields(); // Prepare fields just in case
+    
+        $data = array_intersect_key($data, array_flip(array_diff($this->fields, $this->guarded)));
+    
+        // Apply WHERE if an ID is passed
+        if ($key !== null) {
+            $column = $column ?? $this->primaryKey;
+            $this->query->where($column, '=', $key);
+        }
+    
+        // ✅ Check the builder's WHERE conditions
+        $sql = $this->query->toSql();
+        if (stripos($sql, 'where') === false) {
+            throw new Exception("Update failed: No WHERE clause or ID provided.");
+        }
+    
+        return $this->query->update($data);
+    }
+    
+    
 
-        if (!$row) {
-            return null;
+    public function delete($key = null, $column = null)
+    {
+        if ($key !== null) {
+            $column = $column ?? $this->primaryKey;
+            $this->query->where($column, '=', $key);
         }
 
-        $model = new static();
-        $model->fill(get_object_vars($row));
-        return $model;
-    }
-
-    public function update($data, $id)
-    {
-        $data = array_intersect_key($data, array_flip(array_diff($this->prepareFields(), $this->guarded)));
-
-        // Ensure $this->query is initialized
-        if (!$this->query) {
-            $this->query = QueryBuilder::table($this->table);
+        if (!$this->query->hasWhere()) {
+            throw new Exception("Delete failed: No WHERE clause or ID provided.");
         }
-
-        return $this->query->where($this->primaryKey, '=', $id)->update($data);
+        
+        return $this->query->delete();
     }
 
-
-
-    public function delete($id)
-    {
-        return $this->query->where($this->primaryKey, '=', $id)->delete();
-    }
 
     public function truncate()
     {
@@ -402,22 +421,22 @@ class Model
     // --- Helper Methods ---
 
 
- public function validate(?array $data = null): array
-{
-    $data = $data ?? $_POST;
+    public function validate(?array $data = null): array
+    {
+        $data = $data ?? $_POST;
 
-    if (!property_exists($this, 'validationRules') || empty($this->validationRules)) {
-        return [];
+        if (!property_exists($this, 'validationRules') || empty($this->validationRules)) {
+            return [];
+        }
+
+        $validator = new Validator();
+        $validator->rules($this->validationRules);
+        $validator->validate($data);
+
+        return $validator->fails()
+            ? $validator->errors()
+            : [];
     }
-
-    $validator = new Validator();
-    $validator->rules($this->validationRules);
-    $validator->validate($data);
-
-    return $validator->fails()
-        ? $validator->errors()
-        : [];
-}
 
 
 

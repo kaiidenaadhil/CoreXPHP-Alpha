@@ -1,103 +1,20 @@
-[2025-05-02 18:25:11] [ERROR] SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'aminul@example.com NULL' at line 1
-[2025-05-02 18:25:11] [ERROR] File: D:\xampp\htdocs\CoreXPHP\app\core\QueryBuilder.php Line: 415
-[2025-05-02 18:25:11] [ERROR] Trace: #0 D:\xampp\htdocs\CoreXPHP\app\core\QueryBuilder.php(415): PDOStatement->execute()
-#1 D:\xampp\htdocs\CoreXPHP\app\core\QueryBuilder.php(72): QueryBuilder->execute()
-#2 D:\xampp\htdocs\CoreXPHP\app\core\Model.php(167): QueryBuilder->update(Array)
-#3 D:\xampp\htdocs\CoreXPHP\app\controllers\HomeController.php(9): Model->update(Array)
-#4 [internal function]: HomeController->index()
-#5 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(156): ReflectionMethod->invokeArgs(Object(HomeController), Array)
-#6 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(88): Router->invokeControllerMethod(Object(HomeController), 'index', Array)
-#7 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(109): Router->{closure}(Object(Request))
-#8 D:\xampp\htdocs\CoreXPHP\app\core\App.php(57): Router->resolve()
-#9 D:\xampp\htdocs\CoreXPHP\public\index.php(24): App->run()
-#10 {main}
-[2025-05-02 18:28:14] [ERROR] Call to undefined method QueryBuilder::getWhereClause()
-[2025-05-02 18:28:14] [ERROR] File: D:\xampp\htdocs\CoreXPHP\app\core\QueryBuilder.php Line: 74
-[2025-05-02 18:28:14] [ERROR] Trace: #0 D:\xampp\htdocs\CoreXPHP\app\core\Model.php(167): QueryBuilder->update(Array)
-#1 D:\xampp\htdocs\CoreXPHP\app\controllers\HomeController.php(9): Model->update(Array)
-#2 [internal function]: HomeController->index()
-#3 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(156): ReflectionMethod->invokeArgs(Object(HomeController), Array)
-#4 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(88): Router->invokeControllerMethod(Object(HomeController), 'index', Array)
-#5 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(109): Router->{closure}(Object(Request))
-#6 D:\xampp\htdocs\CoreXPHP\app\core\App.php(57): Router->resolve()
-#7 D:\xampp\htdocs\CoreXPHP\public\index.php(24): App->run()
-#8 {main}
-[2025-05-02 18:31:00] [ERROR] SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'aminul@example.com NULL' at line 1
-[2025-05-02 18:31:00] [ERROR] File: D:\xampp\htdocs\CoreXPHP\app\core\QueryBuilder.php Line: 433
-[2025-05-02 18:31:00] [ERROR] Trace: #0 D:\xampp\htdocs\CoreXPHP\app\core\QueryBuilder.php(433): PDOStatement->execute()
-#1 D:\xampp\htdocs\CoreXPHP\app\core\QueryBuilder.php(88): QueryBuilder->execute()
-#2 D:\xampp\htdocs\CoreXPHP\app\core\Model.php(167): QueryBuilder->update(Array)
-#3 D:\xampp\htdocs\CoreXPHP\app\controllers\HomeController.php(9): Model->update(Array)
-#4 [internal function]: HomeController->index()
-#5 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(156): ReflectionMethod->invokeArgs(Object(HomeController), Array)
-#6 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(88): Router->invokeControllerMethod(Object(HomeController), 'index', Array)
-#7 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(109): Router->{closure}(Object(Request))
-#8 D:\xampp\htdocs\CoreXPHP\app\core\App.php(57): Router->resolve()
-#9 D:\xampp\htdocs\CoreXPHP\public\index.php(24): App->run()
-#10 {main}
-[2025-05-02 18:31:18] [ERROR] SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'aminul@example.com NULL' at line 1
-[2025-05-02 18:31:18] [ERROR] File: D:\xampp\htdocs\CoreXPHP\app\core\QueryBuilder.php Line: 430
-[2025-05-02 18:31:18] [ERROR] Trace: #0 D:\xampp\htdocs\CoreXPHP\app\core\QueryBuilder.php(430): PDOStatement->execute()
-#1 D:\xampp\htdocs\CoreXPHP\app\core\QueryBuilder.php(86): QueryBuilder->execute()
-#2 D:\xampp\htdocs\CoreXPHP\app\core\Model.php(167): QueryBuilder->update(Array)
-#3 D:\xampp\htdocs\CoreXPHP\app\controllers\HomeController.php(9): Model->update(Array)
-#4 [internal function]: HomeController->index()
-#5 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(156): ReflectionMethod->invokeArgs(Object(HomeController), Array)
-#6 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(88): Router->invokeControllerMethod(Object(HomeController), 'index', Array)
-#7 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(109): Router->{closure}(Object(Request))
-#8 D:\xampp\htdocs\CoreXPHP\app\core\App.php(57): Router->resolve()
-#9 D:\xampp\htdocs\CoreXPHP\public\index.php(24): App->run()
-#10 {main}
-[2025-05-02 18:36:03] [ERROR] addslashes(): Passing null to parameter #1 ($string) of type string is deprecated
-[2025-05-02 18:36:03] [ERROR] File: D:\xampp\htdocs\CoreXPHP\app\core\QueryBuilder.php Line: 429
-[2025-05-02 18:36:03] [ERROR] Trace: #0 [internal function]: App->handleError(8192, 'addslashes(): P...', 'D:\\xampp\\htdocs...', 429)
-#1 D:\xampp\htdocs\CoreXPHP\app\core\QueryBuilder.php(429): addslashes(NULL)
-#2 D:\xampp\htdocs\CoreXPHP\app\core\Model.php(442): QueryBuilder->toSql()
-#3 D:\xampp\htdocs\CoreXPHP\app\controllers\HomeController.php(9): Model->toSql()
-#4 [internal function]: HomeController->index()
-#5 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(156): ReflectionMethod->invokeArgs(Object(HomeController), Array)
-#6 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(88): Router->invokeControllerMethod(Object(HomeController), 'index', Array)
-#7 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(109): Router->{closure}(Object(Request))
-#8 D:\xampp\htdocs\CoreXPHP\app\core\App.php(57): Router->resolve()
-#9 D:\xampp\htdocs\CoreXPHP\public\index.php(24): App->run()
-#10 {main}
-[2025-05-02 18:38:04] [ERROR] SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'lost NULL ORDER BY `createdAt` DESC LIMIT 1' at line 1
-[2025-05-02 18:38:04] [ERROR] File: D:\xampp\htdocs\CoreXPHP\app\core\QueryBuilder.php Line: 288
-[2025-05-02 18:38:04] [ERROR] Trace: #0 D:\xampp\htdocs\CoreXPHP\app\core\QueryBuilder.php(288): PDOStatement->execute()
-#1 D:\xampp\htdocs\CoreXPHP\app\core\QueryBuilder.php(212): QueryBuilder->get()
-#2 D:\xampp\htdocs\CoreXPHP\app\core\Model.php(325): QueryBuilder->first()
-#3 D:\xampp\htdocs\CoreXPHP\app\controllers\HomeController.php(9): Model->first()
-#4 [internal function]: HomeController->index()
-#5 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(156): ReflectionMethod->invokeArgs(Object(HomeController), Array)
-#6 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(88): Router->invokeControllerMethod(Object(HomeController), 'index', Array)
-#7 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(109): Router->{closure}(Object(Request))
-#8 D:\xampp\htdocs\CoreXPHP\app\core\App.php(57): Router->resolve()
-#9 D:\xampp\htdocs\CoreXPHP\public\index.php(24): App->run()
-#10 {main}
-[2025-05-02 18:38:19] [ERROR] Call to a member function where() on array
-[2025-05-02 18:38:19] [ERROR] File: D:\xampp\htdocs\CoreXPHP\app\controllers\HomeController.php Line: 8
-[2025-05-02 18:38:19] [ERROR] Trace: #0 [internal function]: HomeController->index()
-#1 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(156): ReflectionMethod->invokeArgs(Object(HomeController), Array)
-#2 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(88): Router->invokeControllerMethod(Object(HomeController), 'index', Array)
-#3 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(109): Router->{closure}(Object(Request))
-#4 D:\xampp\htdocs\CoreXPHP\app\core\App.php(57): Router->resolve()
-#5 D:\xampp\htdocs\CoreXPHP\public\index.php(24): App->run()
-#6 {main}
-[2025-05-02 18:38:19] [ERROR] Call to a member function where() on array
-[2025-05-02 18:38:19] [ERROR] File: D:\xampp\htdocs\CoreXPHP\app\controllers\HomeController.php Line: 8
-[2025-05-02 18:38:19] [ERROR] Trace: #0 [internal function]: HomeController->index()
-#1 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(156): ReflectionMethod->invokeArgs(Object(HomeController), Array)
-#2 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(88): Router->invokeControllerMethod(Object(HomeController), 'index', Array)
-#3 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(109): Router->{closure}(Object(Request))
-#4 D:\xampp\htdocs\CoreXPHP\app\core\App.php(57): Router->resolve()
-#5 D:\xampp\htdocs\CoreXPHP\public\index.php(24): App->run()
-#6 {main}
-[2025-05-02 18:38:28] [ERROR] Call to a member function where() on array
-[2025-05-02 18:38:28] [ERROR] File: D:\xampp\htdocs\CoreXPHP\app\controllers\HomeController.php Line: 8
-[2025-05-02 18:38:28] [ERROR] Trace: #0 [internal function]: HomeController->index()
-#1 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(156): ReflectionMethod->invokeArgs(Object(HomeController), Array)
-#2 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(88): Router->invokeControllerMethod(Object(HomeController), 'index', Array)
-#3 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(109): Router->{closure}(Object(Request))
-#4 D:\xampp\htdocs\CoreXPHP\app\core\App.php(57): Router->resolve()
-#5 D:\xampp\htdocs\CoreXPHP\public\index.php(24): App->run()
-#6 {main}
+[2025-05-04 02:22:01] [ERROR] Update failed: No WHERE clause or ID provided.
+[2025-05-04 02:22:01] [ERROR] File: D:\xampp\htdocs\CoreXPHP\app\core\Model.php Line: 171
+[2025-05-04 02:22:01] [ERROR] Trace: #0 D:\xampp\htdocs\CoreXPHP\app\controllers\HomeController.php(34): Model->update(Array, 9)
+#1 [internal function]: HomeController->index()
+#2 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(156): ReflectionMethod->invokeArgs(Object(HomeController), Array)
+#3 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(88): Router->invokeControllerMethod(Object(HomeController), 'index', Array)
+#4 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(109): Router->{closure}(Object(Request))
+#5 D:\xampp\htdocs\CoreXPHP\app\core\App.php(57): Router->resolve()
+#6 D:\xampp\htdocs\CoreXPHP\public\index.php(24): App->run()
+#7 {main}
+[2025-05-04 02:23:00] [ERROR] Update failed: No WHERE clause or ID provided.
+[2025-05-04 02:23:00] [ERROR] File: D:\xampp\htdocs\CoreXPHP\app\core\Model.php Line: 169
+[2025-05-04 02:23:00] [ERROR] Trace: #0 D:\xampp\htdocs\CoreXPHP\app\controllers\HomeController.php(34): Model->update(Array, 9)
+#1 [internal function]: HomeController->index()
+#2 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(156): ReflectionMethod->invokeArgs(Object(HomeController), Array)
+#3 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(88): Router->invokeControllerMethod(Object(HomeController), 'index', Array)
+#4 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(109): Router->{closure}(Object(Request))
+#5 D:\xampp\htdocs\CoreXPHP\app\core\App.php(57): Router->resolve()
+#6 D:\xampp\htdocs\CoreXPHP\public\index.php(24): App->run()
+#7 {main}

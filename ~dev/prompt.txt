@@ -43,7 +43,7 @@ class App {
         // Register global exception handler
         set_exception_handler([$this, 'handleException']);
     }
-
+ 
     public function use($middlewareClass) {
         $this->globalMiddleware[] = new $middlewareClass;
     }
@@ -521,7 +521,14 @@ class QueryBuilder
     protected $isPaginated = false;
     protected $paginationMeta = null;
 
-    // === Constructor ===
+    // NEW: Select handling
+    protected $selects = ['*'];
+    protected $rawSelect = null;
+
+    // NEW: Aggregation support
+    protected $aggregateFunction = null;
+    protected $aggregateColumn = '*';
+
     public function __construct($db = null, $table = null)
     {
         $this->db = $db ?? Database::getInstance()->getConnection();
@@ -530,109 +537,61 @@ class QueryBuilder
         }
     }
 
-    // === Table Setup ===
     public static function table($table)
     {
         return (new self())->setTable($table);
     }
+
     public function setTable($table)
     {
         $this->table = $table;
         return $this;
     }
 
-    // === Internal: Ensures proper WHERE handling in legacy raw SQL mode ===
-    protected function addWhereClause()
+    // === CRUD Methods ===
+
+    public function insert($data)
     {
-        if (!$this->query) return;
-        if (stripos($this->query, 'WHERE') === false) {
-            $this->query .= ' WHERE';
-        } else {
-            $this->query .= ' AND';
-        }
+        $columns = implode(", ", array_map([$this, 'quoteIdentifier'], array_keys($data)));
+        $placeholders = ":" . implode(", :", array_keys($data));
+        $this->query = "INSERT INTO " . $this->quoteIdentifier($this->table) . " ($columns) VALUES ($placeholders)";
+        $this->bindings = $data;
+        return $this->execute();
     }
 
-    protected function getWhereClause()
+    public function update($data)
     {
-        if (!empty($this->wheres)) {
-            $this->whereAdded = true;
-            return " WHERE " . implode(' AND ', $this->wheres);
-        }
-        return "";
-    }
-      /*================== CRUD ==================*/
-
-      public function insert($data)
-      {
-          $columns = implode(", ", array_map([$this, 'quoteIdentifier'], array_keys($data)));
-          $placeholders = ":" . implode(", :", array_keys($data));
-          $this->query = "INSERT INTO " . $this->quoteIdentifier($this->table) . " ($columns) VALUES ($placeholders)";
-          $this->bindings = $data;
-          return $this->execute();
-      }
-  
-      public function update($data)
-      {
-
-          if (empty($this->wheres)) {
-            throw new Exception("Update/Delete operation requires a WHERE clause.");
-        }
-        
-          $set = [];
-          foreach ($data as $col => $val) {
-              $set[] = $this->quoteIdentifier($col) . " = :$col";
-              $this->bindings[$col] = $val;
-          }
-  
-          $this->query = "UPDATE " . $this->quoteIdentifier($this->table)
-                       . " SET " . implode(", ", $set)
-                       . " " . $this->getWhereClause();
-  
-          return $this->execute();
-      }
-  
-      public function delete()
-      {
         if (empty($this->wheres)) {
             throw new Exception("Update/Delete operation requires a WHERE clause.");
         }
-        
-          $this->query = "DELETE FROM " . $this->quoteIdentifier($this->table) . " " . $this->getWhereClause();
-          return $this->execute();
-      }
-  
-      public function truncate()
-      {
-          $this->query = "TRUNCATE TABLE " . $this->quoteIdentifier($this->table);
-          return $this->execute();
-      }
-  
-      /*================== WHERE ==================*/
-
-    // === Join Clauses ===
-    public function join($table, $first, $operator, $second, $type = 'INNER')
-    {
-        $this->joins[] = strtoupper($type) . " JOIN `$table` ON `$first` $operator `$second`";
-        return $this;
+        $set = [];
+        foreach ($data as $col => $val) {
+            $set[] = $this->quoteIdentifier($col) . " = :$col";
+            $this->bindings[$col] = $val;
+        }
+        $this->query = "UPDATE " . $this->quoteIdentifier($this->table)
+            . " SET " . implode(", ", $set)
+            . " WHERE " . implode(' AND ', $this->wheres);
+        return $this->execute();
     }
 
-    // === Grouping and Having ===
-    public function groupBy($columns)
+    public function delete()
     {
-        $columns = is_array($columns) ? $columns : [$columns];
-        $this->groups = array_map([$this, 'quoteIdentifier'], $columns);
-        return $this;
+        if (empty($this->wheres)) {
+            throw new Exception("Update/Delete operation requires a WHERE clause.");
+        }
+        $this->query = "DELETE FROM " . $this->quoteIdentifier($this->table) . " WHERE " . implode(' AND ', $this->wheres);
+        return $this->execute();
     }
 
-    public function having($column, $operator, $value)
+    public function truncate()
     {
-        $key = $this->createBindingKey("having_$column");
-        $this->havings[] = "$column $operator :$key";
-        $this->bindings[$key] = $value;
-        return $this;
+        $this->query = "TRUNCATE TABLE " . $this->quoteIdentifier($this->table);
+        return $this->execute();
     }
 
-    // === Where Clauses ===
+    // === WHERE Methods (including extended filters) ===
+
     public function where($column, $operator = null, $value = null)
     {
         if (is_callable($column)) {
@@ -640,57 +599,43 @@ class QueryBuilder
             $column($nested);
             if (!empty($nested->wheres)) {
                 $joined = implode(' ', $nested->wheres);
-                $joined = preg_replace('/^OR /', '', $joined); // Remove leading OR
+                $joined = preg_replace('/^OR /', '', $joined);
                 $this->wheres[] = "($joined)";
                 $this->bindings = array_merge($this->bindings, $nested->bindings);
             }
             return $this;
         }
-
+    
         if (func_num_args() === 2) {
             $value = $operator;
             $operator = '=';
         }
-
+    
         $key = $this->createBindingKey($column);
-        $this->wheres[] = "`$column` $operator :$key";
+        $this->wheres[] = $this->quoteIdentifier($column) . " $operator :$key";
         $this->bindings[$key] = $value;
         return $this;
     }
-
     
-
     public function orWhere($column, $operator = null, $value = null)
     {
         if (func_num_args() === 2) {
             $value = $operator;
             $operator = '=';
         }
-
+    
         $key = $this->createBindingKey("or_$column");
-        $this->wheres[] = "OR `$column` $operator :$key";
+        $this->wheres[] = "OR " . $this->quoteIdentifier($column) . " $operator :$key";
         $this->bindings[$key] = $value;
         return $this;
     }
-
-    public function whereBetween($column, $range)
-    {
-        $this->wheres[] = "`$column` BETWEEN :start AND :end";
-        $this->bindings['start'] = $range[0];
-        $this->bindings['end'] = $range[1];
-        return $this;
-    }
-
-    public function whereNotBetween($column, $range)
-    {
-        $this->wheres[] = "`$column` NOT BETWEEN :start AND :end";
-        $this->bindings['start'] = $range[0];
-        $this->bindings['end'] = $range[1];
-        return $this;
-    }
-
+    
     public function whereIn($column, array $values)
     {
+        if (empty($values)) {
+            $this->wheres[] = "0=1";
+            return $this;
+        }
         $placeholders = [];
         foreach ($values as $i => $value) {
             $key = $this->createBindingKey("{$column}_in_$i");
@@ -703,6 +648,9 @@ class QueryBuilder
 
     public function whereNotIn($column, array $values)
     {
+        if (empty($values)) {
+            return $this;
+        }
         $placeholders = [];
         foreach ($values as $i => $value) {
             $key = $this->createBindingKey("{$column}_notin_$i");
@@ -710,6 +658,22 @@ class QueryBuilder
             $this->bindings[$key] = $value;
         }
         $this->wheres[] = "`$column` NOT IN (" . implode(", ", $placeholders) . ")";
+        return $this;
+    }
+
+    public function whereBetween($column, array $range)
+    {
+        $this->wheres[] = "`$column` BETWEEN :start AND :end";
+        $this->bindings['start'] = $range[0];
+        $this->bindings['end'] = $range[1];
+        return $this;
+    }
+
+    public function whereNotBetween($column, array $range)
+    {
+        $this->wheres[] = "`$column` NOT BETWEEN :start AND :end";
+        $this->bindings['start'] = $range[0];
+        $this->bindings['end'] = $range[1];
         return $this;
     }
 
@@ -727,19 +691,23 @@ class QueryBuilder
 
     public function whereRaw($sql)
     {
-        $this->addWhereClause();
         $this->wheres[] = $sql;
         return $this;
     }
 
-    // === Select and Query ===
+    // === Other Selectors ===
+
     public function select($columns = ['*'])
     {
-        $quoted = array_map([$this, 'quoteIdentifier'], $columns);
-        $this->query = "SELECT " . implode(', ', $quoted) . " FROM " . $this->quoteIdentifier($this->table);
+        $this->selects = $columns;
         return $this;
     }
 
+    public function selectRaw($rawSql)
+    {
+        $this->rawSelect = $rawSql;
+        return $this;
+    }
 
     public function first()
     {
@@ -747,41 +715,60 @@ class QueryBuilder
         $results = $this->get();
         return $results[0] ?? null;
     }
+
+
+    public function join($table, $first, $operator, $second, $type = 'INNER')
+    {
+        $type = strtoupper($type);
+        $join = sprintf(
+            "%s JOIN %s ON %s %s %s",
+            $type,
+            $this->quoteIdentifier($table),
+            $this->quoteIdentifier($first),
+            $operator,
+            $this->quoteIdentifier($second)
+        );
+    
+        $this->joins[] = $join;
+        return $this;
+    }
     
 
 
-    public function selectRaw($rawSql)
-{
-    $this->query = "SELECT $rawSql FROM " . $this->quoteIdentifier($this->table);
-    return $this;
-}
-
-
-
-    // === Ordering, Limit, Offset ===
-    public function orderBy($column, $direction = 'ASC')
+    public function groupBy($columns)
     {
-        $this->order = "ORDER BY `" . $column . "` " . strtoupper($direction);
+        $columns = is_array($columns) ? $columns : [$columns];
+        $this->groups = array_map([$this, 'quoteIdentifier'], $columns);
         return $this;
     }
 
-    public function limit($limit)
+    public function having($column, $operator, $value)
     {
-        $this->limit = (int)$limit;
+        $key = $this->createBindingKey("having_$column");
+        $this->havings[] = $this->quoteIdentifier($column) . " $operator :$key";
+        $this->bindings[$key] = $value;
         return $this;
     }
 
-    public function offset($offset)
-    {
-        $this->offset = (int)$offset;
-        return $this;
-    }
 
-    // === Execution ===
+
+
+    // === Data Fetching and Aggregates ===
+
     public function get()
     {
-        $sql = $this->query ?: "SELECT * FROM " . $this->quoteIdentifier($this->table);
+        if ($this->aggregateFunction) {
+            $selectClause = "{$this->aggregateFunction}({$this->quoteIdentifier($this->aggregateColumn)}) AS value";
+        } elseif ($this->rawSelect) {
+            $selectClause = $this->rawSelect;
+        } else {
+            $selectClause = implode(', ', array_map(function ($col) {
+                return $col === '*' ? '*' : $this->quoteIdentifier($col);
+            }, $this->selects));
+            
+        }
 
+        $sql = "SELECT $selectClause FROM " . $this->quoteIdentifier($this->table);
         if (!empty($this->joins)) $sql .= ' ' . implode(' ', $this->joins);
         if (!empty($this->wheres)) $sql .= " WHERE " . implode(' AND ', $this->wheres);
         if (!empty($this->groups)) $sql .= " GROUP BY " . implode(', ', $this->groups);
@@ -800,8 +787,8 @@ class QueryBuilder
         foreach ($this->bindings as $key => $val) {
             $stmt->bindValue(":$key", $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
         }
-        $stmt->execute();
 
+        $stmt->execute();
         $results = $stmt->fetchAll(PDO::FETCH_OBJ);
 
         if ($this->isPaginated) {
@@ -814,115 +801,102 @@ class QueryBuilder
         return $results;
     }
 
-    public function count($column = '*')
-    {
-        $sql = "SELECT COUNT($column) AS aggregate FROM " . $this->quoteIdentifier($this->table);
+    public function count($column = '*') { $this->aggregateFunction = 'COUNT'; $this->aggregateColumn = $column; return $this->getAggregateValue(); }
+    public function sum($column)        { $this->aggregateFunction = 'SUM';   $this->aggregateColumn = $column; return $this->getAggregateValue(); }
+    public function avg($column)        { $this->aggregateFunction = 'AVG';   $this->aggregateColumn = $column; return $this->getAggregateValue(); }
+    public function min($column)        { $this->aggregateFunction = 'MIN';   $this->aggregateColumn = $column; return $this->getAggregateValue(); }
+    public function max($column)        { $this->aggregateFunction = 'MAX';   $this->aggregateColumn = $column; return $this->getAggregateValue(); }
 
-        if (!empty($this->wheres)) {
-            $sql .= " WHERE " . implode(' AND ', $this->wheres);
-        }
+    protected function getAggregateValue()
+    {
+        $selectClause = "{$this->aggregateFunction}({$this->quoteIdentifier($this->aggregateColumn)}) AS value";
+        $sql = "SELECT $selectClause FROM " . $this->quoteIdentifier($this->table);
+        if (!empty($this->joins)) $sql .= ' ' . implode(' ', $this->joins);
+        if (!empty($this->wheres)) $sql .= " WHERE " . implode(' AND ', $this->wheres);
+        if (!empty($this->groups)) $sql .= " GROUP BY " . implode(', ', $this->groups);
+        if (!empty($this->havings)) $sql .= " HAVING " . implode(' AND ', $this->havings);
 
         $stmt = $this->db->prepare($sql);
         foreach ($this->bindings as $key => $val) {
             $stmt->bindValue(":$key", $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
         }
+
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_OBJ);
-        return (int)($result->aggregate ?? 0);
+        return $result->value ?? 0;
     }
-
-
-    public function sum($column)
-{
-    return $this->aggregate("SUM", $column);
-}
-
-public function avg($column)
-{
-    return $this->aggregate("AVG", $column);
-}
-
-public function min($column)
-{
-    return $this->aggregate("MIN", $column);
-}
-
-public function max($column)
-{
-    return $this->aggregate("MAX", $column);
-}
-
-protected function aggregate($function, $column)
-{
-    $sql = "SELECT $function(" . $this->quoteIdentifier($column) . ") AS value FROM " . $this->quoteIdentifier($this->table);
-
-    if (!empty($this->wheres)) {
-        $sql .= " WHERE " . implode(' AND ', $this->wheres);
-    }
-
-    $stmt = $this->db->prepare($sql);
-    foreach ($this->bindings as $key => $val) {
-        $stmt->bindValue(":$key", $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
-    }
-
-    $stmt->execute();
-    $result = $stmt->fetch(PDO::FETCH_OBJ);
-    return $result->value ?? 0;
-}
-
 
     public function paginate($page = 1, $perPage = 15)
     {
         $this->isPaginated = true;
-
         $total = $this->count();
         $this->limit($perPage)->offset(($page - 1) * $perPage);
-
         $this->paginationMeta = [
             'total'       => $total,
             'totalPages'  => ceil($total / $perPage),
             'currentPage' => $page,
             'perPage'     => $perPage,
         ];
-
         return $this;
     }
 
-
-    // === Helper Methods ===
-
-// === Debugging Helpers ===
-public function toSql()
-{
-    $sql = $this->query ?: "SELECT * FROM " . $this->quoteIdentifier($this->table);
-
-    if (!empty($this->joins)) $sql .= ' ' . implode(' ', $this->joins);
-    if (!empty($this->wheres)) $sql .= " WHERE " . implode(' AND ', $this->wheres);
-    if (!empty($this->groups)) $sql .= " GROUP BY " . implode(', ', $this->groups);
-    if (!empty($this->havings)) $sql .= " HAVING " . implode(' AND ', $this->havings);
-    if (!empty($this->order)) $sql .= " " . $this->order;
-    if (isset($this->limit)) $sql .= " LIMIT " . $this->limit;
-    if (isset($this->offset)) $sql .= " OFFSET " . $this->offset;
-
-    foreach ($this->bindings as $key => $val) {
-        $val = is_numeric($val) ? $val : "'$val'";
-        $sql = str_replace(":$key", $val, $sql);
+    public function orderBy($column, $direction = 'ASC')
+    {
+        $this->order = "ORDER BY " . $this->quoteIdentifier($column) . " " . strtoupper($direction);
+        return $this;
+    }
+    
+    public function limit($limit)
+    {
+        $this->limit = (int)$limit;
+        return $this;
     }
 
-    return $sql;
-}
-
-public function logQuery($file = '../logs/query.log')
-{
-    $sql = $this->toSql();
-    if (!is_dir(dirname($file))) {
-        mkdir(dirname($file), 0777, true);
+    public function offset($offset)
+    {
+        $this->offset = (int)$offset;
+        return $this;
     }
-    file_put_contents($file, "[" . date('Y-m-d H:i:s') . "] " . $sql . PHP_EOL, FILE_APPEND);
-    return $this;
-}
 
+    public function toSql()
+    {
+        if ($this->aggregateFunction) {
+            $selectClause = "{$this->aggregateFunction}({$this->quoteIdentifier($this->aggregateColumn)}) AS value";
+        } elseif ($this->rawSelect) {
+            $selectClause = $this->rawSelect;
+        } else {
+            $selectClause = implode(', ', array_map(function ($col) {
+                return $col === '*' ? '*' : $this->quoteIdentifier($col);
+            }, $this->selects));
+            
+        }
 
+        $sql = "SELECT $selectClause FROM " . $this->quoteIdentifier($this->table);
+        if (!empty($this->joins)) $sql .= ' ' . implode(' ', $this->joins);
+        if (!empty($this->wheres)) $sql .= " WHERE " . implode(' AND ', $this->wheres);
+        if (!empty($this->groups)) $sql .= " GROUP BY " . implode(', ', $this->groups);
+        if (!empty($this->havings)) $sql .= " HAVING " . implode(' AND ', $this->havings);
+        if (!empty($this->order)) $sql .= " " . $this->order;
+        if (isset($this->limit)) $sql .= " LIMIT " . $this->limit;
+        if (isset($this->offset)) $sql .= " OFFSET " . $this->offset;
+
+        foreach ($this->bindings as $key => $val) {
+            $val = is_numeric($val) ? $val : "'$val'";
+            $sql = str_replace(":$key", $val, $sql);
+        }
+
+        return $sql;
+    }
+
+    public function logQuery($file = '../logs/query.log')
+    {
+        $sql = $this->toSql();
+        if (!is_dir(dirname($file))) {
+            mkdir(dirname($file), 0777, true);
+        }
+        file_put_contents($file, "[" . date('Y-m-d H:i:s') . "] " . $sql . PHP_EOL, FILE_APPEND);
+        return $this;
+    }
 
     protected function quoteIdentifier($identifier)
     {
@@ -943,8 +917,10 @@ public function logQuery($file = '../logs/query.log')
         }
         return $stmt->execute();
     }
+
+// End of class
 }
- 
+
 
 10. **app/init.php**
     - Loads environment variables and defines constants for application configuration.
@@ -1023,7 +999,6 @@ public function logQuery($file = '../logs/query.log')
     -This file defines routes, allowing the application to handle requests for specific URLs.
     -Dynamic routes capture URL parameters, such as user ID, for use in controller actions.
 
-
 <?php
 
 /**
@@ -1057,60 +1032,60 @@ class Model
     }
 
     public function findAll(array $options = [])
-{
-    $this->prepareFields();
-    $query = QueryBuilder::table($this->table);
+    {
+        $this->prepareFields();
+        $query = QueryBuilder::table($this->table);
 
-    // Filters
-    if (!empty($options['filters'])) {
-        foreach ($options['filters'] as $column => $value) {
-            if (in_array($column, $this->columns)) {
-                $query->where($column, '=', $value);
+        // Filters
+        if (!empty($options['filters'])) {
+            foreach ($options['filters'] as $column => $value) {
+                if (in_array($column, $this->columns)) {
+                    $query->where($column, '=', $value);
+                }
             }
         }
-    }
 
-    // Search
-    if (!empty($options['search'])) {
-        $term = $options['search']['term'] ?? '';
-        $columns = $options['search']['columns'] ?? [];
+        // Search
+        if (!empty($options['search'])) {
+            $term = $options['search']['term'] ?? '';
+            $columns = $options['search']['columns'] ?? [];
 
-        if (!empty($term) && !empty($columns)) {
-            $query->where(function ($q) use ($term, $columns) {
-                foreach ($columns as $i => $column) {
-                    $i === 0
-                        ? $q->where($column, 'LIKE', "%$term%")
-                        : $q->orWhere($column, 'LIKE', "%$term%");
-                }
-            });
+            if (!empty($term) && !empty($columns)) {
+                $query->where(function ($q) use ($term, $columns) {
+                    foreach ($columns as $i => $column) {
+                        $i === 0
+                            ? $q->where($column, 'LIKE', "%$term%")
+                            : $q->orWhere($column, 'LIKE', "%$term%");
+                    }
+                });
+            }
         }
-    }
 
-    // Sorting
-    if (!empty($options['sort'])) {
-        $query->orderBy(
-            $options['sort']['column'],
-            $options['sort']['direction'] ?? 'asc'
-        );
-    }
-
-    // Pagination — just return builder with paginate called
-    if (!empty($options['pagination']) && $options['pagination']['enabled']) {
-        $page = max(1, (int)($options['pagination']['page'] ?? 1));
-        $perPage = max(1, (int)($options['pagination']['perPage'] ?? 10));
-        $query->paginate($page, $perPage);
-    }
-
-    return $query; // Always return builder
-}
-
-    
-        // Forward the whereRaw call to the QueryBuilder instance
-        public function whereRaw($sql)
-        {
-            $this->query->whereRaw($sql);
-            return $this;
+        // Sorting
+        if (!empty($options['sort'])) {
+            $query->orderBy(
+                $options['sort']['column'],
+                $options['sort']['direction'] ?? 'asc'
+            );
         }
+
+        // Pagination — just return builder with paginate called
+        if (!empty($options['pagination']) && $options['pagination']['enabled']) {
+            $page = max(1, (int)($options['pagination']['page'] ?? 1));
+            $perPage = max(1, (int)($options['pagination']['perPage'] ?? 10));
+            $query->paginate($page, $perPage);
+        }
+
+        return $query; // Always return builder
+    }
+
+
+    // Forward the whereRaw call to the QueryBuilder instance
+    public function whereRaw($sql)
+    {
+        $this->query->whereRaw($sql);
+        return $this;
+    }
 
     // --- Prepare Fields ---
 
@@ -1182,17 +1157,17 @@ class Model
     public function update($data, $id)
     {
         $data = array_intersect_key($data, array_flip(array_diff($this->prepareFields(), $this->guarded)));
-    
+
         // Ensure $this->query is initialized
         if (!$this->query) {
             $this->query = QueryBuilder::table($this->table);
         }
-    
+
         return $this->query->where($this->primaryKey, '=', $id)->update($data);
     }
-    
-    
-    
+
+
+
     public function delete($id)
     {
         return $this->query->where($this->primaryKey, '=', $id)->delete();
@@ -1231,7 +1206,7 @@ class Model
         }
         return $this;
     }
-    
+
 
     public function search($term, $columns)
     {
@@ -1289,6 +1264,61 @@ class Model
         return $models;
     }
 
+    // public function findAll(array $options = [])
+    // {
+    //     $this->prepareFields(); // Ensure fields are prepared before anything else
+
+    //     // Apply filters
+    //     if (isset($options['filters']) && is_array($options['filters'])) {
+    //         foreach ($options['filters'] as $column => $value) {
+    //             if (in_array($column, $this->columns)) {
+    //                 // Apply filter with 3 arguments (column, '=', value)
+    //                 $this->where($column, '=', $value); 
+    //             }
+    //         }
+    //     }
+
+    //     // Apply search
+    //     if (isset($options['search']) && is_array($options['search'])) {
+    //         $term = $options['search']['term'] ?? null;
+    //         $columns = $options['search']['columns'] ?? $this->filters;
+
+    //         if ($term) {
+    //             // Prepare search conditions as raw SQL
+    //             $searchConditions = [];
+    //             foreach ($columns as $column) {
+    //                 if (in_array($column, $this->columns)) {
+    //                     // Add LIKE condition for each column
+    //                     $searchConditions[] = "{$column} LIKE '%" . $term . "%'";
+    //                 }
+    //             }
+
+    //             // If there are conditions, join them with OR and apply raw where
+    //             if (!empty($searchConditions)) {
+    //                 $this->whereRaw(implode(' OR ', $searchConditions));
+    //             }
+    //         }
+    //     }
+
+    //     // Apply sort
+    //     if (isset($options['sort']) && isset($options['sort']['column'])) {
+    //         $direction = $options['sort']['direction'] ?? 'desc';
+    //         $this->orderBy($options['sort']['column'], $direction);
+    //     }
+
+    //     // Apply pagination last to ensure it's applied after all conditions
+    //     if (isset($options['pagination']) && $options['pagination']['enabled']) {
+    //         $page = $options['pagination']['page'] ?? 1;
+    //         $perPage = $options['pagination']['perPage'] ?? 10;
+
+    //         // Ensure pagination is applied last so it's based on the final query
+    //         return $this->paginate($page, $perPage);  // Pagination method call
+    //     }
+
+    //     // If pagination not enabled, return the builder (normal query)
+    //     return $this;
+    // }
+
 
 
     public function first()
@@ -1310,11 +1340,16 @@ class Model
             $this->query->where($column); // pass closure directly to QueryBuilder
             return $this;
         }
-    
+
         $this->query->where($column, $operator, $value);
         return $this;
     }
-    
+    public function orWhere($column, $operator = null, $value = null)
+    {
+        $this->query->orWhere($column, $operator, $value);
+        return $this;
+    }
+
 
     public function whereIn($column, $values)
     {
@@ -1366,6 +1401,26 @@ class Model
     }
 
     // --- Helper Methods ---
+
+
+ public function validate(?array $data = null): array
+{
+    $data = $data ?? $_POST;
+
+    if (!property_exists($this, 'validationRules') || empty($this->validationRules)) {
+        return [];
+    }
+
+    $validator = new Validator();
+    $validator->rules($this->validationRules);
+    $validator->validate($data);
+
+    return $validator->fails()
+        ? $validator->errors()
+        : [];
+}
+
+
 
     public function toArray(): array
     {
