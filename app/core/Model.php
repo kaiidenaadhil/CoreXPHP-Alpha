@@ -29,12 +29,12 @@ class Model
 
         $this->query = QueryBuilder::table($this->table);
     }
-
+    
     public function findAll(array $options = [])
     {
         $this->prepareFields();
         $query = QueryBuilder::table($this->table);
-
+    
         // Filters
         if (!empty($options['filters'])) {
             foreach ($options['filters'] as $column => $value) {
@@ -43,12 +43,12 @@ class Model
                 }
             }
         }
-
+    
         // Search
         if (!empty($options['search'])) {
             $term = $options['search']['term'] ?? '';
             $columns = $options['search']['columns'] ?? [];
-
+    
             if (!empty($term) && !empty($columns)) {
                 $query->where(function ($q) use ($term, $columns) {
                     foreach ($columns as $i => $column) {
@@ -59,7 +59,7 @@ class Model
                 });
             }
         }
-
+    
         // Sorting
         if (!empty($options['sort'])) {
             $query->orderBy(
@@ -67,16 +67,18 @@ class Model
                 $options['sort']['direction'] ?? 'asc'
             );
         }
-
-        // Pagination — just return builder with paginate called
+    
+        // Pagination — return full result with meta
         if (!empty($options['pagination']) && $options['pagination']['enabled']) {
             $page = max(1, (int)($options['pagination']['page'] ?? 1));
             $perPage = max(1, (int)($options['pagination']['perPage'] ?? 10));
-            $query->paginate($page, $perPage);
+    
+            return $query->paginate($page, $perPage)->get(); // Return array with data + meta
         }
-
-        return $query; // Always return builder
+    
+        return $query; // Return builder for further chaining (select, where, first, etc.)
     }
+    
 
 
     // Forward the whereRaw call to the QueryBuilder instance

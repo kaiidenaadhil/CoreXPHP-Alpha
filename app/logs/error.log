@@ -1,20 +1,49 @@
-[2025-05-04 02:22:01] [ERROR] Update failed: No WHERE clause or ID provided.
-[2025-05-04 02:22:01] [ERROR] File: D:\xampp\htdocs\CoreXPHP\app\core\Model.php Line: 171
-[2025-05-04 02:22:01] [ERROR] Trace: #0 D:\xampp\htdocs\CoreXPHP\app\controllers\HomeController.php(34): Model->update(Array, 9)
-#1 [internal function]: HomeController->index()
-#2 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(156): ReflectionMethod->invokeArgs(Object(HomeController), Array)
-#3 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(88): Router->invokeControllerMethod(Object(HomeController), 'index', Array)
-#4 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(109): Router->{closure}(Object(Request))
-#5 D:\xampp\htdocs\CoreXPHP\app\core\App.php(57): Router->resolve()
-#6 D:\xampp\htdocs\CoreXPHP\public\index.php(24): App->run()
-#7 {main}
-[2025-05-04 02:23:00] [ERROR] Update failed: No WHERE clause or ID provided.
-[2025-05-04 02:23:00] [ERROR] File: D:\xampp\htdocs\CoreXPHP\app\core\Model.php Line: 169
-[2025-05-04 02:23:00] [ERROR] Trace: #0 D:\xampp\htdocs\CoreXPHP\app\controllers\HomeController.php(34): Model->update(Array, 9)
-#1 [internal function]: HomeController->index()
-#2 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(156): ReflectionMethod->invokeArgs(Object(HomeController), Array)
-#3 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(88): Router->invokeControllerMethod(Object(HomeController), 'index', Array)
-#4 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(109): Router->{closure}(Object(Request))
-#5 D:\xampp\htdocs\CoreXPHP\app\core\App.php(57): Router->resolve()
-#6 D:\xampp\htdocs\CoreXPHP\public\index.php(24): App->run()
-#7 {main}
+[2025-05-07 02:21:33] [ERROR] SQLSTATE[42S22]: Column not found: 1054 Unknown column 'users.name AS ownerName' in 'field list'
+[2025-05-07 02:21:33] [ERROR] File: D:\xampp\htdocs\CoreXPHP\app\core\QueryBuilder.php Line: 319
+[2025-05-07 02:21:33] [ERROR] Trace: #0 D:\xampp\htdocs\CoreXPHP\app\core\QueryBuilder.php(319): PDOStatement->execute()
+#1 D:\xampp\htdocs\CoreXPHP\app\controllers\HomeController.php(54): QueryBuilder->get()
+#2 [internal function]: HomeController->index()
+#3 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(156): ReflectionMethod->invokeArgs(Object(HomeController), Array)
+#4 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(88): Router->invokeControllerMethod(Object(HomeController), 'index', Array)
+#5 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(109): Router->{closure}(Object(Request))
+#6 D:\xampp\htdocs\CoreXPHP\app\core\App.php(57): Router->resolve()
+#7 D:\xampp\htdocs\CoreXPHP\public\index.php(24): App->run()
+#8 {main}
+[2025-05-07 02:25:25] [ERROR] Call to a member function join() on array
+[2025-05-07 02:25:25] [ERROR] File: D:\xampp\htdocs\CoreXPHP\app\controllers\HomeController.php Line: 13
+[2025-05-07 02:25:25] [ERROR] Trace: #0 [internal function]: HomeController->index()
+#1 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(156): ReflectionMethod->invokeArgs(Object(HomeController), Array)
+#2 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(88): Router->invokeControllerMethod(Object(HomeController), 'index', Array)
+#3 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(109): Router->{closure}(Object(Request))
+#4 D:\xampp\htdocs\CoreXPHP\app\core\App.php(57): Router->resolve()
+#5 D:\xampp\htdocs\CoreXPHP\public\index.php(24): App->run()
+#6 {main}
+[2025-05-07 02:27:51] [ERROR] Call to a member function join() on array
+[2025-05-07 02:27:51] [ERROR] File: D:\xampp\htdocs\CoreXPHP\app\controllers\HomeController.php Line: 13
+[2025-05-07 02:27:51] [ERROR] Trace: #0 [internal function]: HomeController->index()
+#1 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(156): ReflectionMethod->invokeArgs(Object(HomeController), Array)
+#2 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(88): Router->invokeControllerMethod(Object(HomeController), 'index', Array)
+#3 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(109): Router->{closure}(Object(Request))
+#4 D:\xampp\htdocs\CoreXPHP\app\core\App.php(57): Router->resolve()
+#5 D:\xampp\htdocs\CoreXPHP\public\index.php(24): App->run()
+#6 {main}
+[2025-05-07 02:28:31] [ERROR] SQLSTATE[42S22]: Column not found: 1054 Unknown column 'users.name AS userName' in 'field list'
+[2025-05-07 02:28:31] [ERROR] File: D:\xampp\htdocs\CoreXPHP\app\core\QueryBuilder.php Line: 319
+[2025-05-07 02:28:31] [ERROR] Trace: #0 D:\xampp\htdocs\CoreXPHP\app\core\QueryBuilder.php(319): PDOStatement->execute()
+#1 D:\xampp\htdocs\CoreXPHP\app\controllers\HomeController.php(23): QueryBuilder->get()
+#2 [internal function]: HomeController->index()
+#3 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(156): ReflectionMethod->invokeArgs(Object(HomeController), Array)
+#4 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(88): Router->invokeControllerMethod(Object(HomeController), 'index', Array)
+#5 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(109): Router->{closure}(Object(Request))
+#6 D:\xampp\htdocs\CoreXPHP\app\core\App.php(57): Router->resolve()
+#7 D:\xampp\htdocs\CoreXPHP\public\index.php(24): App->run()
+#8 {main}
+[2025-05-07 02:37:15] [ERROR] Call to a member function toSql() on array
+[2025-05-07 02:37:15] [ERROR] File: D:\xampp\htdocs\CoreXPHP\app\controllers\HomeController.php Line: 24
+[2025-05-07 02:37:15] [ERROR] Trace: #0 [internal function]: HomeController->index()
+#1 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(156): ReflectionMethod->invokeArgs(Object(HomeController), Array)
+#2 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(88): Router->invokeControllerMethod(Object(HomeController), 'index', Array)
+#3 D:\xampp\htdocs\CoreXPHP\app\core\Router.php(109): Router->{closure}(Object(Request))
+#4 D:\xampp\htdocs\CoreXPHP\app\core\App.php(57): Router->resolve()
+#5 D:\xampp\htdocs\CoreXPHP\public\index.php(24): App->run()
+#6 {main}

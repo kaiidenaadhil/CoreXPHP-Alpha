@@ -104,3 +104,21 @@ BINDINGS: Array
 )
 
 
+[2025-05-06 18:45:48]
+QUERY: UPDATE `leads` SET `status` = :status WHERE `email` = :email_0
+BINDINGS: Array
+(
+    [email_0] => gal@lead.com
+    [status] => new
+)
+
+
+[2025-05-07 01:44:44]
+QUERY: UPDATE `leads` SET `status` = :status WHERE `email` = :email_0
+BINDINGS: Array
+(
+    [email_0] => gal@lead.com
+    [status] => new
+)
+
+

@@ -2,7 +2,56 @@
 
 class HomeController extends Controller
 {
-    public function index()
+
+    public function index(){
+
+        // $lead = $this->model('LeadModel')
+        // ->findAll()
+        // ->select(['name', 'email'])
+        // ->where('status', 'lost')
+        // ->first();
+
+        // $data = $this->model('LeadModel')->findAll([
+        //     'pagination' => ['enabled' => true, 'page' => 1, 'perPage' => 2]
+        // ]);
+        
+
+        // $data = $this->model('LeadModel')->findAll([
+        //     'pagination' => ['enabled' => true, 'page' => 1, 'perPage' => 2]
+        // ]);
+
+
+        // $data = $this->model('LeadModel')->findAll([
+        //     'search' => ['term' => 'emma', 'columns' => ['name']]
+        // ])->get();
+        
+        // $data = $this->model('LeadModel')->findAll([
+        //     'sort' => ['column' => 'createdAt', 'direction' => 'desc']
+        // ])->get();
+
+        // $data = $this->model('LeadModel')->findAll([
+        //     'filters' => ['status' => 'lost']
+        // ])->groupBy('serviceInterested')
+        //   ->having('leadId', '>', 1)
+        //   ->get();
+        
+    //     $data = $this->model('LeadModel')
+    // ->findAll()
+    // ->select(['name', 'email'])
+    // ->where('status', 'lost')
+    // ->orderBy('createdAt', 'desc')
+    // ->first();
+    $count = $this->model('LeadModel')
+    ->findAll()
+    ->where('status', 'lost')
+    ->count();
+
+echo "Lost leads: $count";
+
+      //  p($data);
+        
+    }
+    public function indlllex()
     {
         // $model = $this->model('LeadModel')
         // ->where('email','aminul@exalfmple.com')->delete();

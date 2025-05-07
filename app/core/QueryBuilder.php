@@ -281,17 +281,21 @@ public function orWhere($column, $operator = null, $value = null)
     public function get()
     {
         if ($this->aggregateFunction) {
-            $selectClause = "{$this->aggregateFunction}({$this->quoteIdentifier($this->aggregateColumn)}) AS value";
+            $column = $this->aggregateColumn === '*'
+                ? '*'
+                : $this->quoteIdentifier($this->aggregateColumn);
+    
+            $selectClause = "{$this->aggregateFunction}($column) AS value";
         } elseif ($this->rawSelect) {
             $selectClause = $this->rawSelect;
         } else {
             $selectClause = implode(', ', array_map(function ($col) {
                 return $col === '*' ? '*' : $this->quoteIdentifier($col);
             }, $this->selects));
-            
         }
-
+    
         $sql = "SELECT $selectClause FROM " . $this->quoteIdentifier($this->table);
+    
         if (!empty($this->joins)) $sql .= ' ' . implode(' ', $this->joins);
         if (!empty($this->wheres)) $sql .= " WHERE " . implode(' AND ', $this->wheres);
         if (!empty($this->groups)) $sql .= " GROUP BY " . implode(', ', $this->groups);
@@ -305,24 +309,26 @@ public function orWhere($column, $operator = null, $value = null)
             $sql .= " OFFSET :offset";
             $this->bindings['offset'] = $this->offset;
         }
-
+    
         $stmt = $this->db->prepare($sql);
+    
         foreach ($this->bindings as $key => $val) {
             $stmt->bindValue(":$key", $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
         }
-
+    
         $stmt->execute();
         $results = $stmt->fetchAll(PDO::FETCH_OBJ);
-
+    
         if ($this->isPaginated) {
             return [
                 'data' => $results,
                 'meta' => $this->paginationMeta
             ];
         }
-
+    
         return $results;
     }
+    
 
     public function count($column = '*') { $this->aggregateFunction = 'COUNT'; $this->aggregateColumn = $column; return $this->getAggregateValue(); }
     public function sum($column)        { $this->aggregateFunction = 'SUM';   $this->aggregateColumn = $column; return $this->getAggregateValue(); }
@@ -332,28 +338,41 @@ public function orWhere($column, $operator = null, $value = null)
 
     protected function getAggregateValue()
     {
-        $selectClause = "{$this->aggregateFunction}({$this->quoteIdentifier($this->aggregateColumn)}) AS value";
+        // Fix: Avoid quoting '*' in COUNT(*) and other aggregates
+        $column = $this->aggregateColumn === '*'
+            ? '*'
+            : $this->quoteIdentifier($this->aggregateColumn);
+    
+        $selectClause = "{$this->aggregateFunction}($column) AS value";
         $sql = "SELECT $selectClause FROM " . $this->quoteIdentifier($this->table);
+    
         if (!empty($this->joins)) $sql .= ' ' . implode(' ', $this->joins);
         if (!empty($this->wheres)) $sql .= " WHERE " . implode(' AND ', $this->wheres);
         if (!empty($this->groups)) $sql .= " GROUP BY " . implode(', ', $this->groups);
         if (!empty($this->havings)) $sql .= " HAVING " . implode(' AND ', $this->havings);
-
+    
         $stmt = $this->db->prepare($sql);
         foreach ($this->bindings as $key => $val) {
             $stmt->bindValue(":$key", $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
         }
-
+    
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_OBJ);
         return $result->value ?? 0;
     }
+    
 
     public function paginate($page = 1, $perPage = 15)
     {
         $this->isPaginated = true;
-        $total = $this->count();
+        $total = $this->count(); // uses COUNT() internally
+    
+        // Reset the aggregate mode before calling get() again
+        $this->aggregateFunction = null;
+        $this->aggregateColumn = '*';
+    
         $this->limit($perPage)->offset(($page - 1) * $perPage);
+    
         $this->paginationMeta = [
             'total'       => $total,
             'totalPages'  => ceil($total / $perPage),
@@ -362,6 +381,7 @@ public function orWhere($column, $operator = null, $value = null)
         ];
         return $this;
     }
+    
 
     public function orderBy($column, $direction = 'ASC')
     {
